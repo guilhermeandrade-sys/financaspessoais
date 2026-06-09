@@ -1,12 +1,9 @@
-// Inicializa cliente Supabase (carregado via CDN no index.html — será adicionado)
-// Por ora, usamos fetch direto para auth e o cliente será inicializado aqui
-
-// `db` é reservado pelo SDK — usamos `db` como nome do cliente global
+// `supabase` é nome reservado pelo SDK global — cliente fica na variável `db`
 var db = null;
 let usuarioAtual = null;
 
 function inicializarSupabase() {
-  db = window.db.createClient(CONFIG.dbUrl, CONFIG.dbKey);
+  db = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
 }
 
 async function verificarSessao() {
