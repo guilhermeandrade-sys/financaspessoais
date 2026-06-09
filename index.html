@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <title>Finanças Pessoais</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="tela-login" class="tela-login">
+      <h1>Finanças Pessoais</h1>
+      <form id="form-login">
+        <input type="email" id="login-email" placeholder="E-mail" required />
+        <input type="password" id="login-senha" placeholder="Senha" required />
+        <button type="submit">Entrar</button>
+        <p id="login-erro" class="erro"></p>
+      </form>
+    </div>
+
+    <div id="tela-app" class="tela-app oculto">
+      <main id="conteudo-principal"></main>
+
+      <nav class="tab-bar">
+        <button class="tab-item ativo" data-view="home">
+          <span class="tab-icone">🏠</span>
+          <span class="tab-label">Home</span>
+        </button>
+        <button class="tab-item" data-view="lancamentos">
+          <span class="tab-icone">📋</span>
+          <span class="tab-label">Lançamentos</span>
+        </button>
+        <button class="tab-item" data-view="analise">
+          <span class="tab-icone">📊</span>
+          <span class="tab-label">Análise</span>
+        </button>
+        <button class="tab-item" data-view="patrimonio">
+          <span class="tab-icone">💼</span>
+          <span class="tab-label">Patrimônio</span>
+        </button>
+      </nav>
+
+      <button id="fab" class="fab" title="Novo lançamento">+</button>
+    </div>
+  </div>
+
+  <!-- Bottom sheet para novo lançamento -->
+  <div id="bottom-sheet" class="bottom-sheet oculto">
+    <div class="bottom-sheet__backdrop"></div>
+    <div class="bottom-sheet__painel">
+      <div class="bottom-sheet__handle"></div>
+      <div id="bottom-sheet__conteudo"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast oculto"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/lancamentos.js"></script>
+  <script src="js/recorrencias.js"></script>
+  <script src="js/orcamento.js"></script>
+  <script src="js/patrimonio.js"></script>
+  <script src="views/home.js"></script>
+  <script src="views/lancamentos.js"></script>
+  <script src="views/analise.js"></script>
+  <script src="views/patrimonio.js"></script>
+  <script src="js/router.js"></script>
+</body>
+</html>
