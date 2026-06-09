@@ -10,40 +10,28 @@
 </head>
 <body>
   <div id="app">
-    <div id="tela-login" class="tela-login">
-      <h1>Finanças Pessoais</h1>
-      <form id="form-login">
-        <input type="email" id="login-email" placeholder="E-mail" required />
-        <input type="password" id="login-senha" placeholder="Senha" required />
-        <button type="submit">Entrar</button>
-        <p id="login-erro" class="erro"></p>
-      </form>
-    </div>
+    <main id="conteudo-principal"></main>
 
-    <div id="tela-app" class="tela-app oculto">
-      <main id="conteudo-principal"></main>
+    <nav class="tab-bar">
+      <button class="tab-item ativo" data-view="home">
+        <span class="tab-icone">🏠</span>
+        <span class="tab-label">Home</span>
+      </button>
+      <button class="tab-item" data-view="lancamentos">
+        <span class="tab-icone">📋</span>
+        <span class="tab-label">Lançamentos</span>
+      </button>
+      <button class="tab-item" data-view="analise">
+        <span class="tab-icone">📊</span>
+        <span class="tab-label">Análise</span>
+      </button>
+      <button class="tab-item" data-view="patrimonio">
+        <span class="tab-icone">💼</span>
+        <span class="tab-label">Patrimônio</span>
+      </button>
+    </nav>
 
-      <nav class="tab-bar">
-        <button class="tab-item ativo" data-view="home">
-          <span class="tab-icone">🏠</span>
-          <span class="tab-label">Home</span>
-        </button>
-        <button class="tab-item" data-view="lancamentos">
-          <span class="tab-icone">📋</span>
-          <span class="tab-label">Lançamentos</span>
-        </button>
-        <button class="tab-item" data-view="analise">
-          <span class="tab-icone">📊</span>
-          <span class="tab-label">Análise</span>
-        </button>
-        <button class="tab-item" data-view="patrimonio">
-          <span class="tab-icone">💼</span>
-          <span class="tab-label">Patrimônio</span>
-        </button>
-      </nav>
-
-      <button id="fab" class="fab" title="Novo lançamento">+</button>
-    </div>
+    <button id="fab" class="fab" title="Novo lançamento">+</button>
   </div>
 
   <!-- Bottom sheet para novo lançamento -->

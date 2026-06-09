@@ -40,7 +40,6 @@ async function renderizarHome() {
         <span class="nav-mes__label">${formatarMesAno(anoSelecionado, mesSelecionado)}</span>
         <button class="nav-mes__btn" id="mes-proximo">›</button>
       </nav>
-      <button onclick="fazerLogout()" style="background:none;border:none;color:var(--cor-texto-secundario);cursor:pointer;font-size:var(--tam-sm)">Sair</button>
     </div>
 
     <div class="card card--destaque" style="text-align:center;margin-bottom:var(--esp-md)">

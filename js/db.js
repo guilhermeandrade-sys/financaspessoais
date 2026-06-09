@@ -30,7 +30,7 @@ async function buscarLancamentosPorPeriodo(dataInicio, dataFim) {
 async function inserirLancamento(lancamento) {
   const { data, error } = await db
     .from('fp_lancamentos')
-    .insert({ ...lancamento, usuario_id: obterUsuarioId() })
+    .insert(lancamento)
     .select()
     .single();
   if (error) console.error('inserirLancamento:', error);
@@ -38,8 +38,7 @@ async function inserirLancamento(lancamento) {
 }
 
 async function inserirLancamentosEmLote(lancamentos) {
-  const comUsuario = lancamentos.map((l) => ({ ...l, usuario_id: obterUsuarioId() }));
-  const { data, error } = await db.from('fp_lancamentos').insert(comUsuario).select();
+  const { data, error } = await db.from('fp_lancamentos').insert(lancamentos).select();
   if (error) console.error('inserirLancamentosEmLote:', error);
   return { data, error };
 }
