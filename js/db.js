@@ -1,11 +1,12 @@
 // Camada de acesso ao Supabase — toda comunicação com o banco passa por aqui
+// Usa a variável global `db` inicializada em auth.js
 
 // ===== LANÇAMENTOS =====
 
 async function buscarLancamentosPorMes(ano, mes) {
   const inicio = `${ano}-${String(mes).padStart(2, '0')}-01`;
-  const fim = new Date(ano, mes, 0).toISOString().slice(0, 10); // último dia do mês
-  const { data, error } = await supabase
+  const fim = new Date(ano, mes, 0).toISOString().slice(0, 10);
+  const { data, error } = await db
     .from('fp_lancamentos')
     .select('*')
     .gte('data_evento', inicio)
@@ -16,7 +17,7 @@ async function buscarLancamentosPorMes(ano, mes) {
 }
 
 async function buscarLancamentosPorPeriodo(dataInicio, dataFim) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_lancamentos')
     .select('*')
     .gte('data_evento', dataInicio)
@@ -27,7 +28,7 @@ async function buscarLancamentosPorPeriodo(dataInicio, dataFim) {
 }
 
 async function inserirLancamento(lancamento) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_lancamentos')
     .insert({ ...lancamento, usuario_id: obterUsuarioId() })
     .select()
@@ -38,13 +39,13 @@ async function inserirLancamento(lancamento) {
 
 async function inserirLancamentosEmLote(lancamentos) {
   const comUsuario = lancamentos.map((l) => ({ ...l, usuario_id: obterUsuarioId() }));
-  const { data, error } = await supabase.from('fp_lancamentos').insert(comUsuario).select();
+  const { data, error } = await db.from('fp_lancamentos').insert(comUsuario).select();
   if (error) console.error('inserirLancamentosEmLote:', error);
   return { data, error };
 }
 
 async function atualizarLancamento(id, campos) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_lancamentos')
     .update(campos)
     .eq('id', id)
@@ -55,13 +56,13 @@ async function atualizarLancamento(id, campos) {
 }
 
 async function deletarLancamento(id) {
-  const { error } = await supabase.from('fp_lancamentos').delete().eq('id', id);
+  const { error } = await db.from('fp_lancamentos').delete().eq('id', id);
   if (error) console.error('deletarLancamento:', error);
   return { error };
 }
 
 async function deletarGrupoParcelas(grupoParcelas) {
-  const { error } = await supabase
+  const { error } = await db
     .from('fp_lancamentos')
     .delete()
     .eq('grupo_parcelas', grupoParcelas);
@@ -73,14 +74,12 @@ async function deletarGrupoParcelas(grupoParcelas) {
 
 async function buscarOrcamentoPorMes(ano, mes) {
   const valido = `${ano}-${String(mes).padStart(2, '0')}-01`;
-  // Busca o orçamento mais recente válido para cada categoria até o mês consultado
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_orcamento')
     .select('*')
     .lte('valido_a_partir', valido)
     .order('valido_a_partir', { ascending: false });
   if (error) console.error('buscarOrcamentoPorMes:', error);
-  // Deduplica por categoria (pega o mais recente de cada)
   const porCategoria = {};
   for (const item of data || []) {
     if (!porCategoria[item.categoria]) porCategoria[item.categoria] = item;
@@ -89,13 +88,13 @@ async function buscarOrcamentoPorMes(ano, mes) {
 }
 
 async function inserirOrcamento(orcamento) {
-  const { data, error } = await supabase.from('fp_orcamento').insert(orcamento).select().single();
+  const { data, error } = await db.from('fp_orcamento').insert(orcamento).select().single();
   if (error) console.error('inserirOrcamento:', error);
   return { data, error };
 }
 
 async function upsertOrcamento(categoria, valorMensal, validoAPartir) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_orcamento')
     .upsert({ categoria, valor_mensal: valorMensal, valido_a_partir: validoAPartir }, {
       onConflict: 'categoria,valido_a_partir',
@@ -109,7 +108,7 @@ async function upsertOrcamento(categoria, valorMensal, validoAPartir) {
 // ===== RECORRÊNCIAS =====
 
 async function buscarRecorrenciasAtivas() {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_recorrencias')
     .select('*')
     .eq('ativa', true)
@@ -119,7 +118,7 @@ async function buscarRecorrenciasAtivas() {
 }
 
 async function buscarConfirmacoesDoMes(mesAno) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_recorrencias_confirmadas')
     .select('*')
     .eq('mes_ano', mesAno);
@@ -128,7 +127,7 @@ async function buscarConfirmacoesDoMes(mesAno) {
 }
 
 async function inserirConfirmacaoRecorrencia(recorrenciaId, mesAno, status) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_recorrencias_confirmadas')
     .insert({ recorrencia_id: recorrenciaId, mes_ano: mesAno, status })
     .select()
@@ -138,7 +137,7 @@ async function inserirConfirmacaoRecorrencia(recorrenciaId, mesAno, status) {
 }
 
 async function inserirRecorrencia(recorrencia) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_recorrencias')
     .insert(recorrencia)
     .select()
@@ -148,7 +147,7 @@ async function inserirRecorrencia(recorrencia) {
 }
 
 async function atualizarRecorrencia(id, campos) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_recorrencias')
     .update(campos)
     .eq('id', id)
@@ -161,7 +160,7 @@ async function atualizarRecorrencia(id, campos) {
 // ===== PATRIMÔNIO =====
 
 async function buscarPatrimonio() {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_patrimonio')
     .select('*')
     .order('tipo')
@@ -171,7 +170,7 @@ async function buscarPatrimonio() {
 }
 
 async function inserirPatrimonio(item) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_patrimonio')
     .insert(item)
     .select()
@@ -181,7 +180,7 @@ async function inserirPatrimonio(item) {
 }
 
 async function atualizarPatrimonio(id, campos) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_patrimonio')
     .update({ ...campos, updated_at: new Date().toISOString() })
     .eq('id', id)
@@ -192,7 +191,7 @@ async function atualizarPatrimonio(id, campos) {
 }
 
 async function deletarPatrimonio(id) {
-  const { error } = await supabase.from('fp_patrimonio').delete().eq('id', id);
+  const { error } = await db.from('fp_patrimonio').delete().eq('id', id);
   if (error) console.error('deletarPatrimonio:', error);
   return { error };
 }
@@ -200,7 +199,7 @@ async function deletarPatrimonio(id) {
 // ===== PROJETOS =====
 
 async function buscarProjetos() {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_projetos')
     .select('*')
     .order('prazo')
@@ -210,7 +209,7 @@ async function buscarProjetos() {
 }
 
 async function inserirProjeto(projeto) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_projetos')
     .insert(projeto)
     .select()
@@ -220,7 +219,7 @@ async function inserirProjeto(projeto) {
 }
 
 async function atualizarProjeto(id, campos) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('fp_projetos')
     .update(campos)
     .eq('id', id)
@@ -231,7 +230,7 @@ async function atualizarProjeto(id, campos) {
 }
 
 async function deletarProjeto(id) {
-  const { error } = await supabase.from('fp_projetos').delete().eq('id', id);
+  const { error } = await db.from('fp_projetos').delete().eq('id', id);
   if (error) console.error('deletarProjeto:', error);
   return { error };
 }

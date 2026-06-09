@@ -1,15 +1,16 @@
 // Inicializa cliente Supabase (carregado via CDN no index.html — será adicionado)
 // Por ora, usamos fetch direto para auth e o cliente será inicializado aqui
 
-let supabase = null;
+// `db` é reservado pelo SDK — usamos `db` como nome do cliente global
+var db = null;
 let usuarioAtual = null;
 
 function inicializarSupabase() {
-  supabase = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
+  db = window.db.createClient(CONFIG.dbUrl, CONFIG.dbKey);
 }
 
 async function verificarSessao() {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await db.auth.getSession();
   if (session) {
     usuarioAtual = session.user;
     return true;
@@ -18,14 +19,14 @@ async function verificarSessao() {
 }
 
 async function fazerLogin(email, senha) {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
+  const { data, error } = await db.auth.signInWithPassword({ email, password: senha });
   if (error) return { error };
   usuarioAtual = data.user;
   return { data };
 }
 
 async function fazerLogout() {
-  await supabase.auth.signOut();
+  await db.auth.signOut();
   usuarioAtual = null;
   mostrarTelaLogin();
 }
