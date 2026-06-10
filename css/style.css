@@ -402,6 +402,40 @@ html, body {
   text-align: center;
 }
 
+/* ===== SUGESTÃO DE CATEGORIA ===== */
+.sugestao-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-sm);
+  margin-top: var(--esp-xs);
+  flex-wrap: wrap;
+}
+
+.sugestao-chip__label {
+  font-size: var(--tam-xs);
+  color: var(--cor-texto-secundario);
+  white-space: nowrap;
+}
+
+.sugestao-chip__btn {
+  background: rgba(124, 106, 247, 0.12);
+  border: 1px solid rgba(124, 106, 247, 0.4);
+  color: var(--cor-primaria);
+  border-radius: var(--raio-full);
+  padding: 3px var(--esp-md);
+  font-size: var(--tam-sm);
+  font-family: var(--fonte-base);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+
+.sugestao-chip__btn:hover,
+.sugestao-chip__btn:active {
+  background: rgba(124, 106, 247, 0.25);
+  border-color: var(--cor-primaria);
+}
+
 /* ===== FILTROS DE LANÇAMENTOS ===== */
 .filtros-lancamentos {
   display: flex;

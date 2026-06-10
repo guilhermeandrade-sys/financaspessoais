@@ -17,6 +17,7 @@ async function salvarLancamento(dados) {
     return null;
   }
   mostrarToast('Lançamento salvo!', 'sucesso');
+  invalidarIndiceSugestoes();
   return data;
 }
 
@@ -50,6 +51,7 @@ async function salvarLancamentoParcelado(base, totalParcelas) {
     return null;
   }
   mostrarToast(`${totalParcelas} parcelas lançadas!`, 'sucesso');
+  invalidarIndiceSugestoes();
   return lancamentos;
 }
 
