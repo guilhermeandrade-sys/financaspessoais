@@ -14,11 +14,11 @@ async function renderizarLancamentos() {
   }
 
   const itens = (lancamentos || []).map((l) => `
-    <div class="lancamento-item" data-id="${l.id}">
+    <div class="lancamento-item" data-id="${l.id}" onclick="abrirEdicaoLancamento('${l.id}')">
       <div class="lancamento-item__info">
         <div class="lancamento-item__descricao">${l.descricao}</div>
         <div class="lancamento-item__meta">
-          ${formatarData(l.data_evento)} · ${l.categoria} · ${l.meio}
+          ${formatarData(l.data_evento)} · ${l.categoria}${l.subcategoria ? ' / ' + l.subcategoria : ''} · ${l.meio}
           ${l.parcela_total > 1 ? ` · ${l.parcela_atual}/${l.parcela_total}` : ''}
         </div>
       </div>
@@ -51,4 +51,49 @@ async function renderizarLancamentos() {
     if (mesListagem > 12) { mesListagem = 1; anoListagem++; }
     renderizarLancamentos();
   };
+}
+
+async function abrirEdicaoLancamento(id) {
+  const { data: lancamentos } = await buscarLancamentosPorMes(anoListagem, mesListagem);
+  const l = (lancamentos || []).find((x) => x.id === id);
+  if (!l) return;
+
+  abrirBottomSheet(htmlFormLancamento(l));
+  inicializarFormLancamento(async (dados) => {
+    const { error } = await atualizarLancamento(id, {
+      descricao:    dados.descricao,
+      valor:        dados.valor,
+      data_evento:  dados.data_evento,
+      categoria:    dados.categoria,
+      subcategoria: dados.subcategoria,
+      meio:         dados.meio,
+      tipo:         dados.tipo,
+    });
+    if (error) {
+      mostrarToast('Erro ao salvar.', 'erro');
+    } else {
+      fecharBottomSheet();
+      mostrarToast('Lançamento atualizado!', 'sucesso');
+      renderizarLancamentos();
+    }
+  });
+
+  // Botão excluir
+  const painel = document.getElementById('bottom-sheet__conteudo');
+  const btnExcluir = document.createElement('button');
+  btnExcluir.className = 'btn btn--perigo';
+  btnExcluir.style.marginTop = 'var(--esp-xs)';
+  btnExcluir.textContent = 'Excluir lançamento';
+  btnExcluir.onclick = async () => {
+    if (!confirm('Excluir este lançamento?')) return;
+    const { error } = await deletarLancamento(id);
+    if (error) {
+      mostrarToast('Erro ao excluir.', 'erro');
+    } else {
+      fecharBottomSheet();
+      mostrarToast('Lançamento excluído.', 'sucesso');
+      renderizarLancamentos();
+    }
+  };
+  painel.appendChild(btnExcluir);
 }

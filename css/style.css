@@ -431,6 +431,47 @@ html, body {
   text-align: center;
 }
 
+/* ===== SUBCATEGORIAS NA HOME ===== */
+.card--categoria .card-cat__cabecalho {
+  cursor: pointer;
+}
+
+.subcat-seta {
+  display: inline-block;
+  margin-left: var(--esp-xs);
+  transition: transform 0.2s;
+  font-style: normal;
+}
+
+.subcats {
+  margin-top: var(--esp-sm);
+  border-top: 1px solid var(--cor-borda);
+  padding-top: var(--esp-sm);
+}
+
+.subcat-linha {
+  margin-bottom: var(--esp-sm);
+}
+
+.subcat-linha:last-child {
+  margin-bottom: 0;
+}
+
+.subcat-linha__nome {
+  font-size: var(--tam-sm);
+  color: var(--cor-texto-secundario);
+  margin-bottom: 2px;
+}
+
+.subcat-linha__valores {
+  font-size: var(--tam-sm);
+  margin-bottom: 2px;
+}
+
+.barra-progresso--slim {
+  height: 3px;
+}
+
 /* ===== LISTA DE LANÇAMENTOS ===== */
 .lancamento-item {
   display: flex;
@@ -438,6 +479,11 @@ html, body {
   justify-content: space-between;
   padding: var(--esp-sm) 0;
   border-bottom: 1px solid var(--cor-borda);
+  cursor: pointer;
+}
+
+.lancamento-item:active {
+  opacity: 0.7;
 }
 
 .lancamento-item:last-child {

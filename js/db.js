@@ -79,11 +79,17 @@ async function buscarOrcamentoPorMes(ano, mes) {
     .lte('valido_a_partir', valido)
     .order('valido_a_partir', { ascending: false });
   if (error) console.error('buscarOrcamentoPorMes:', error);
-  const porCategoria = {};
+  // Para cada (categoria, subcategoria), pega o registro mais recente (primeiro da ordenação desc)
+  const vistos = new Set();
+  const resultado = [];
   for (const item of data || []) {
-    if (!porCategoria[item.categoria]) porCategoria[item.categoria] = item;
+    const chave = `${item.categoria}||${item.subcategoria || ''}`;
+    if (!vistos.has(chave)) {
+      vistos.add(chave);
+      resultado.push(item);
+    }
   }
-  return { data: Object.values(porCategoria), error };
+  return { data: resultado, error };
 }
 
 async function inserirOrcamento(orcamento) {

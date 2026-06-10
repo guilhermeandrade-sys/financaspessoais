@@ -16,19 +16,51 @@ async function renderizarHome() {
       const realizado = resumo.porCategoria[cat] || 0;
       const orcado = resumo.orcamentoPorCategoria[cat] || 0;
       if (realizado === 0 && orcado === 0) return '';
+
+      const subcatsOrc = resumo.orcamentoPorSubcategoria[cat] || {};
+      const subcatsReal = resumo.porSubcategoria[cat] || {};
+      const todasSubs = new Set([...Object.keys(subcatsOrc), ...Object.keys(subcatsReal)]);
+
+      let linhasSubcat = '';
+      if (todasSubs.size > 0) {
+        linhasSubcat = [...todasSubs].sort().map((sub) => {
+          const r = subcatsReal[sub] || 0;
+          const o = subcatsOrc[sub] || 0;
+          if (r === 0 && o === 0) return '';
+          const pctSub = o > 0 ? Math.min((r / o) * 100, 100) : 0;
+          const clsSub = pctSub >= 100 ? 'estourado' : pctSub >= 85 ? 'alerta' : '';
+          return `
+            <div class="subcat-linha">
+              <div class="subcat-linha__nome">${sub}</div>
+              <div class="subcat-linha__valores">
+                <span class="${r > o && o > 0 ? 'negativo' : ''}">${formatarMoeda(r)}</span>
+                ${o > 0 ? `<span class="texto-secundario"> / ${formatarMoeda(o)}</span>` : ''}
+              </div>
+              ${o > 0 ? `<div class="barra-progresso barra-progresso--slim"><div class="barra-progresso__preenchimento${clsSub ? ' barra-progresso__preenchimento--' + clsSub : ''}" style="width:${pctSub}%"></div></div>` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+
+      const pct = orcado > 0 ? Math.round((realizado / orcado) * 100) : null;
+
       return `
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span class="card__titulo">${cat}</span>
-            <span style="font-size:var(--tam-sm);color:var(--cor-texto-secundario)">
-              ${orcado > 0 ? formatarMoeda(orcado) : '—'}
-            </span>
+        <div class="card card--categoria" data-cat="${cat}">
+          <div class="card-cat__cabecalho" onclick="toggleSubcats(this)">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span class="card__titulo">${cat}</span>
+              <span style="font-size:var(--tam-sm);color:var(--cor-texto-secundario)">
+                ${orcado > 0 ? formatarMoeda(orcado) : '—'}
+                ${todasSubs.size > 0 ? '<span class="subcat-seta">›</span>' : ''}
+              </span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--esp-xs)">
+              <span class="negrito">${formatarMoeda(realizado)}</span>
+              ${pct !== null ? `<span class="texto-secundario" style="font-size:var(--tam-sm)">${pct}%</span>` : ''}
+            </div>
+            ${orcado > 0 ? htmlBarraProgresso(realizado, orcado) : ''}
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--esp-xs)">
-            <span class="negrito">${formatarMoeda(realizado)}</span>
-            ${orcado > 0 ? `<span class="texto-secundario" style="font-size:var(--tam-sm)">${Math.round((realizado/orcado)*100)}%</span>` : ''}
-          </div>
-          ${orcado > 0 ? htmlBarraProgresso(realizado, orcado) : ''}
+          ${linhasSubcat ? `<div class="subcats oculto">${linhasSubcat}</div>` : ''}
         </div>
       `;
     }).join('');
@@ -78,4 +110,12 @@ async function renderizarHome() {
     if (mesSelecionado > 12) { mesSelecionado = 1; anoSelecionado++; }
     renderizarHome();
   };
+}
+
+function toggleSubcats(cabecalho) {
+  const subcats = cabecalho.nextElementSibling;
+  if (!subcats || !subcats.classList.contains('subcats')) return;
+  const seta = cabecalho.querySelector('.subcat-seta');
+  subcats.classList.toggle('oculto');
+  if (seta) seta.textContent = subcats.classList.contains('oculto') ? '›' : '⌄';
 }
