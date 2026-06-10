@@ -402,6 +402,54 @@ html, body {
   text-align: center;
 }
 
+/* ===== FILTROS DE LANÇAMENTOS ===== */
+.filtros-lancamentos {
+  display: flex;
+  gap: var(--esp-sm);
+  margin-bottom: var(--esp-md);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filtro-select {
+  flex: 1;
+  min-width: 0;
+  padding: var(--esp-sm) var(--esp-md);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto);
+  font-size: var(--tam-sm);
+  font-family: var(--fonte-base);
+  outline: none;
+  cursor: pointer;
+}
+
+.filtro-select:focus {
+  border-color: var(--cor-primaria);
+}
+
+.filtro-select option {
+  background: var(--cor-superficie-2);
+}
+
+.filtro-limpar {
+  background: none;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  color: var(--cor-texto-secundario);
+  font-size: var(--tam-sm);
+  padding: var(--esp-sm) var(--esp-md);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.filtro-limpar:hover {
+  border-color: var(--cor-erro);
+  color: var(--cor-erro);
+}
+
 /* ===== SUBCATEGORIAS NA HOME ===== */
 .card--categoria .card-cat__cabecalho {
   cursor: pointer;
@@ -419,8 +467,30 @@ html, body {
   padding-top: var(--esp-sm);
 }
 
+/* Título de categoria clicável */
+.card__titulo--link {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.card__titulo--link:hover {
+  color: var(--cor-primaria);
+}
+
 .subcat-linha {
   margin-bottom: var(--esp-sm);
+}
+
+.subcat-linha--clicavel {
+  cursor: pointer;
+  border-radius: var(--raio-sm);
+  padding: var(--esp-xs);
+  margin: 0 calc(-1 * var(--esp-xs)) var(--esp-sm);
+  transition: background 0.15s;
+}
+
+.subcat-linha--clicavel:hover {
+  background: rgba(124, 106, 247, 0.08);
 }
 
 .subcat-linha:last-child {

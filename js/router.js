@@ -9,9 +9,20 @@ const VIEWS = {
 
 let viewAtual = 'home';
 
-function navegarPara(view) {
+// Parâmetros passados entre views (ex: filtro de categoria)
+let _navegacaoParams = null;
+
+function pegarParams() {
+  const p = _navegacaoParams;
+  _navegacaoParams = null;
+  return p;
+}
+
+function navegarPara(view, params) {
   if (!VIEWS[view]) return;
   viewAtual = view;
+
+  if (params) _navegacaoParams = params;
 
   document.querySelectorAll('.tab-item').forEach((btn) => {
     btn.classList.toggle('ativo', btn.dataset.view === view);
@@ -21,12 +32,10 @@ function navegarPara(view) {
 }
 
 function inicializarApp() {
-  // Tab bar
   document.querySelectorAll('.tab-item').forEach((btn) => {
     btn.addEventListener('click', () => navegarPara(btn.dataset.view));
   });
 
-  // FAB
   document.getElementById('fab').addEventListener('click', () => {
     abrirFormNovoLancamento(() => {
       if (viewAtual === 'home') renderizarHome();
@@ -34,12 +43,6 @@ function inicializarApp() {
     });
   });
 
-  // Verifica recorrências pendentes do mês
   verificarRecorrenciasPendentes();
-
-  // Renderiza view inicial
   navegarPara('home');
 }
-
-// Inicializa o app assim que a sessão for confirmada em auth.js
-// (chamado por auth.js após login ou sessão válida)

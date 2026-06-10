@@ -30,7 +30,7 @@ async function renderizarHome() {
           const pctSub = o > 0 ? Math.min((r / o) * 100, 100) : 0;
           const clsSub = pctSub >= 100 ? 'estourado' : pctSub >= 85 ? 'alerta' : '';
           return `
-            <div class="subcat-linha">
+            <div class="subcat-linha subcat-linha--clicavel" onclick="irParaLancamentosCat(event,'${cat}','${sub}')">
               <div class="subcat-linha__nome">${sub}</div>
               <div class="subcat-linha__valores">
                 <span class="${r > o && o > 0 ? 'negativo' : ''}">${formatarMoeda(r)}</span>
@@ -48,7 +48,7 @@ async function renderizarHome() {
         <div class="card card--categoria" data-cat="${cat}">
           <div class="card-cat__cabecalho" onclick="toggleSubcats(this)">
             <div style="display:flex;justify-content:space-between;align-items:center">
-              <span class="card__titulo">${cat}</span>
+              <span class="card__titulo card__titulo--link" onclick="irParaLancamentosCat(event,'${cat}',null)">${cat}</span>
               <span style="font-size:var(--tam-sm);color:var(--cor-texto-secundario)">
                 ${orcado > 0 ? formatarMoeda(orcado) : '—'}
                 ${todasSubs.size > 0 ? '<span class="subcat-seta">›</span>' : ''}
@@ -120,4 +120,14 @@ function toggleSubcats(cabecalho) {
   const seta = cabecalho.querySelector('.subcat-seta');
   subcats.classList.toggle('oculto');
   if (seta) seta.textContent = subcats.classList.contains('oculto') ? '›' : '⌄';
+}
+
+function irParaLancamentosCat(event, categoria, subcategoria) {
+  event.stopPropagation();
+  navegarPara('lancamentos', {
+    categoria,
+    subcategoria,
+    ano: anoSelecionado,
+    mes: mesSelecionado,
+  });
 }
