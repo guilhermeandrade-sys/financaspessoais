@@ -36,9 +36,11 @@
   --raio-lg: 16px;
   --raio-full: 9999px;
 
-  /* Tab bar */
+  /* Layout */
   --altura-tab-bar: 64px;
   --altura-fab: 56px;
+  --largura-sidebar: 220px;
+  --largura-sidebar-collapsed: 68px;
 }
 
 *, *::before, *::after {
@@ -62,7 +64,7 @@ html, body {
   flex-direction: column;
 }
 
-/* ===== TELA DE LOGIN ===== */
+/* ===== TELA DE LOGIN (legado) ===== */
 .tela-login {
   display: flex;
   flex-direction: column;
@@ -79,53 +81,7 @@ html, body {
   font-weight: 700;
 }
 
-#form-login {
-  display: flex;
-  flex-direction: column;
-  gap: var(--esp-md);
-  width: 100%;
-  max-width: 360px;
-}
-
-#form-login input {
-  padding: var(--esp-md);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-md);
-  background: var(--cor-superficie);
-  color: var(--cor-texto);
-  font-size: var(--tam-base);
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-#form-login input:focus {
-  border-color: var(--cor-primaria);
-}
-
-#form-login button {
-  padding: var(--esp-md);
-  background: var(--cor-primaria);
-  color: var(--cor-texto-invertido);
-  border: none;
-  border-radius: var(--raio-md);
-  font-size: var(--tam-base);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-#form-login button:hover {
-  background: var(--cor-primaria-hover);
-}
-
-/* ===== TELA PRINCIPAL ===== */
-.tela-app {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  position: relative;
-}
-
+/* ===== LAYOUT MOBILE (padrão) ===== */
 #conteudo-principal {
   flex: 1;
   overflow-y: auto;
@@ -133,7 +89,7 @@ html, body {
   padding-bottom: calc(var(--altura-tab-bar) + var(--esp-xl));
 }
 
-/* ===== TAB BAR ===== */
+/* ===== TAB BAR (mobile) ===== */
 .tab-bar {
   position: fixed;
   bottom: 0;
@@ -159,12 +115,16 @@ html, body {
   cursor: pointer;
   padding: var(--esp-sm);
   border-radius: var(--raio-sm);
-  transition: color 0.2s;
+  transition: color 0.2s, background 0.2s;
   flex: 1;
 }
 
 .tab-item.ativo {
   color: var(--cor-primaria);
+}
+
+.tab-item:hover {
+  color: var(--cor-texto);
 }
 
 .tab-icone {
@@ -201,6 +161,7 @@ html, body {
 
 .fab:hover {
   background: var(--cor-primaria-hover);
+  transform: scale(1.05);
 }
 
 .fab:active {
@@ -319,6 +280,7 @@ html, body {
   font-family: var(--fonte-base);
   outline: none;
   transition: border-color 0.2s;
+  width: 100%;
 }
 
 .form-grupo input:focus,
@@ -339,12 +301,12 @@ html, body {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s, opacity 0.2s;
+  width: 100%;
 }
 
 .btn--primario {
   background: var(--cor-primaria);
   color: var(--cor-texto-invertido);
-  width: 100%;
 }
 
 .btn--primario:hover {
@@ -358,6 +320,13 @@ html, body {
 }
 
 .btn--perigo {
+  background: transparent;
+  color: var(--cor-erro);
+  border: 1px solid var(--cor-erro);
+  margin-top: var(--esp-xs);
+}
+
+.btn--perigo:hover {
   background: var(--cor-erro);
   color: var(--cor-texto-invertido);
 }
@@ -379,10 +348,7 @@ html, body {
   border: 1px solid var(--cor-borda);
 }
 
-.toast.oculto {
-  display: none;
-}
-
+.toast.oculto { display: none; }
 .toast--sucesso { border-color: var(--cor-sucesso); }
 .toast--erro    { border-color: var(--cor-erro); }
 
@@ -422,6 +388,11 @@ html, body {
   cursor: pointer;
   padding: var(--esp-xs);
   line-height: 1;
+  transition: color 0.2s;
+}
+
+.nav-mes__btn:hover {
+  color: var(--cor-texto);
 }
 
 .nav-mes__label {
@@ -439,7 +410,6 @@ html, body {
 .subcat-seta {
   display: inline-block;
   margin-left: var(--esp-xs);
-  transition: transform 0.2s;
   font-style: normal;
 }
 
@@ -480,10 +450,11 @@ html, body {
   padding: var(--esp-sm) 0;
   border-bottom: 1px solid var(--cor-borda);
   cursor: pointer;
+  transition: opacity 0.15s;
 }
 
-.lancamento-item:active {
-  opacity: 0.7;
+.lancamento-item:hover {
+  opacity: 0.8;
 }
 
 .lancamento-item:last-child {
@@ -523,25 +494,231 @@ html, body {
   color: var(--cor-texto-secundario);
 }
 
-/* ===== DESKTOP ===== */
+/* ===================================================
+   TABLET (768px+) — conteúdo centralizado e mais largo
+   =================================================== */
 @media (min-width: 768px) {
   #conteudo-principal {
-    max-width: 640px;
+    max-width: 720px;
     margin: 0 auto;
-    padding: var(--esp-xl) var(--esp-md);
+    padding: var(--esp-xl) var(--esp-lg);
     padding-bottom: calc(var(--altura-tab-bar) + var(--esp-xl));
   }
 
+  /* Tab bar centralizada com bordas arredondadas */
   .tab-bar {
-    max-width: 640px;
+    max-width: 720px;
     left: 50%;
     transform: translateX(-50%);
     border-radius: var(--raio-lg) var(--raio-lg) 0 0;
-    border-left: 1px solid var(--cor-borda);
-    border-right: 1px solid var(--cor-borda);
+    border: 1px solid var(--cor-borda);
+    border-bottom: none;
   }
 
   .fab {
-    right: calc(50% - 320px + var(--esp-lg));
+    right: calc(50% - 360px + var(--esp-lg));
+  }
+
+  /* Bottom sheet mais estreito no tablet */
+  .bottom-sheet__painel {
+    max-width: 560px;
+    margin: 0 auto;
+    border-radius: var(--raio-lg) var(--raio-lg) 0 0;
+  }
+
+  /* Saldo em cards lado a lado */
+  .cards-saldo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--esp-md);
+  }
+
+  /* Cards de categoria em grade 2 colunas */
+  .cards-categorias-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--esp-md);
+  }
+
+  .cards-categorias-grid .card {
+    margin-bottom: 0;
+  }
+}
+
+/* ===================================================
+   DESKTOP (1024px+) — sidebar lateral
+   =================================================== */
+@media (min-width: 1024px) {
+
+  /* App vira layout horizontal */
+  #app {
+    flex-direction: row;
+  }
+
+  /* ---- SIDEBAR ---- */
+  .tab-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: auto;
+    width: var(--largura-sidebar);
+    height: 100vh;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: var(--esp-xl) var(--esp-sm);
+    gap: var(--esp-xs);
+    border-top: none;
+    border-right: 1px solid var(--cor-borda);
+    border-bottom: none;
+    border-left: none;
+    border-radius: 0;
+    /* desfaz o transform do tablet */
+    transform: none;
+    max-width: none;
+    left: 0;
+  }
+
+  /* Logo / título na sidebar */
+  .tab-bar::before {
+    content: "💰 Finanças";
+    display: block;
+    color: var(--cor-primaria);
+    font-weight: 700;
+    font-size: var(--tam-lg);
+    padding: var(--esp-sm) var(--esp-md);
+    margin-bottom: var(--esp-md);
+    white-space: nowrap;
+  }
+
+  .tab-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--esp-md);
+    flex: 0;
+    padding: var(--esp-md);
+    border-radius: var(--raio-md);
+    text-align: left;
+  }
+
+  .tab-item.ativo {
+    background: rgba(124, 106, 247, 0.15);
+  }
+
+  .tab-icone {
+    font-size: var(--tam-xl);
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .tab-label {
+    font-size: var(--tam-base);
+    font-weight: 500;
+  }
+
+  /* ---- CONTEÚDO PRINCIPAL ---- */
+  #conteudo-principal {
+    margin-left: var(--largura-sidebar);
+    max-width: none;
+    padding: var(--esp-xl) var(--esp-xl);
+    padding-bottom: var(--esp-xl);
+    /* grade interna para usar largura disponível */
+    display: grid;
+    grid-template-columns: minmax(0, 800px);
+    justify-content: center;
+    align-content: start;
+    gap: 0;
+  }
+
+  /* Reset do padding-bottom que compensava tab bar */
+  #conteudo-principal > * {
+    /* nada extra — padding-bottom do container já basta */
+  }
+
+  /* ---- FAB vira botão na sidebar (em cima dos itens) ---- */
+  .fab {
+    position: fixed;
+    bottom: var(--esp-xl);
+    left: var(--esp-md);
+    right: auto;
+    width: calc(var(--largura-sidebar) - var(--esp-xl));
+    height: auto;
+    border-radius: var(--raio-md);
+    font-size: var(--tam-base);
+    font-weight: 600;
+    padding: var(--esp-md);
+    box-shadow: 0 2px 8px rgba(124, 106, 247, 0.3);
+  }
+
+  .fab::before {
+    content: "+ Novo lançamento";
+  }
+
+  /* Esconde o "+" inline do botão no desktop */
+  .fab > * {
+    display: none;
+  }
+
+  /* ---- BOTTOM SHEET vira modal centralizado ---- */
+  .bottom-sheet {
+    justify-content: center;
+    align-items: center;
+  }
+
+  .bottom-sheet__painel {
+    border-radius: var(--raio-lg);
+    max-width: 520px;
+    width: 100%;
+    max-height: 85vh;
+    margin: var(--esp-md);
+  }
+
+  .bottom-sheet__handle {
+    display: none;
+  }
+
+  /* ---- TOAST fica acima do rodapé ---- */
+  .toast {
+    bottom: var(--esp-xl);
+    left: calc(var(--largura-sidebar) + 50%);
+    transform: translateX(-50%);
+  }
+
+  /* ---- GRADE DE CARDS NA HOME ---- */
+  .cards-saldo-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: var(--esp-md);
+    margin-bottom: var(--esp-md);
+  }
+
+  .cards-saldo-grid .card {
+    margin-bottom: 0;
+  }
+
+  .cards-categorias-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--esp-md);
+  }
+
+  .cards-categorias-grid .card {
+    margin-bottom: 0;
+  }
+}
+
+/* ===================================================
+   DESKTOP LARGO (1440px+) — sidebar um pouco maior
+   =================================================== */
+@media (min-width: 1440px) {
+  :root {
+    --largura-sidebar: 240px;
+  }
+
+  #conteudo-principal {
+    grid-template-columns: minmax(0, 960px);
+    padding: var(--esp-xl) calc(var(--esp-xl) * 2);
   }
 }

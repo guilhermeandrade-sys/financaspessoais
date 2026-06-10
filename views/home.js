@@ -74,30 +74,32 @@ async function renderizarHome() {
       </nav>
     </div>
 
-    <div class="card card--destaque" style="text-align:center;margin-bottom:var(--esp-md)">
-      <div class="card__titulo">Saldo do mês</div>
-      <div class="card__valor ${resumo.saldo >= 0 ? 'positivo' : 'negativo'}">${formatarMoeda(resumo.saldo)}</div>
-      <div style="display:flex;justify-content:space-around;margin-top:var(--esp-md)">
-        <div>
-          <div class="card__titulo">Receita</div>
-          <div class="positivo negrito">${formatarMoeda(resumo.receita)}</div>
-        </div>
-        <div>
-          <div class="card__titulo">Despesa</div>
-          <div class="negativo negrito">${formatarMoeda(resumo.despesa)}</div>
-        </div>
+    <div class="cards-saldo-grid">
+      <div class="card card--destaque" style="text-align:center">
+        <div class="card__titulo">Saldo do mês</div>
+        <div class="card__valor ${resumo.saldo >= 0 ? 'positivo' : 'negativo'}">${formatarMoeda(resumo.saldo)}</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div class="card__titulo">Receita</div>
+        <div class="card__valor positivo">${formatarMoeda(resumo.receita)}</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div class="card__titulo">Despesa</div>
+        <div class="card__valor negativo">${formatarMoeda(resumo.despesa)}</div>
       </div>
     </div>
 
     ${dispDia > 0 ? `
-    <div class="card" style="text-align:center;margin-bottom:var(--esp-md)">
+    <div class="card" style="text-align:center">
       <div class="card__titulo">Disponível por dia</div>
       <div class="card__valor positivo">${formatarMoeda(dispDia)}</div>
     </div>
     ` : ''}
 
-    <h3 style="margin-bottom:var(--esp-sm);color:var(--cor-texto-secundario);font-size:var(--tam-sm);text-transform:uppercase;letter-spacing:0.05em">Por categoria</h3>
-    ${cardsCategorias || '<p class="texto-secundario centralizado" style="padding:var(--esp-lg)">Nenhum lançamento neste mês.</p>'}
+    <h3 style="margin:var(--esp-md) 0 var(--esp-sm);color:var(--cor-texto-secundario);font-size:var(--tam-sm);text-transform:uppercase;letter-spacing:0.05em">Por categoria</h3>
+    <div class="cards-categorias-grid">
+      ${cardsCategorias || '<p class="texto-secundario centralizado" style="padding:var(--esp-lg)">Nenhum lançamento neste mês.</p>'}
+    </div>
   `;
 
   document.getElementById('mes-anterior').onclick = () => {
