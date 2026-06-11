@@ -4,6 +4,7 @@ let mesListagem = new Date().getMonth() + 1;
 let anoListagem = new Date().getFullYear();
 let filtroCategoria = '';
 let filtroSubcategoria = '';
+let filtroBusca = '';
 
 async function renderizarLancamentos() {
   // Absorve parâmetros vindos de outra view (ex: clique na home)
@@ -33,6 +34,7 @@ async function renderizarLancamentos() {
   const lancamentos = (todos || []).filter((l) => {
     if (filtroCategoria    && l.categoria    !== filtroCategoria)    return false;
     if (filtroSubcategoria && l.subcategoria !== filtroSubcategoria) return false;
+    if (filtroBusca && !l.descricao.toLowerCase().includes(filtroBusca.toLowerCase())) return false;
     return true;
   });
 
@@ -46,6 +48,8 @@ async function renderizarLancamentos() {
     ? `<option value="">Todas as subcategorias</option>` +
       subcatsDisponiveis.map(s => `<option value="${s}" ${filtroSubcategoria === s ? 'selected' : ''}>${s}</option>`).join('')
     : '';
+
+  const temFiltro = filtroCategoria || filtroSubcategoria || filtroBusca;
 
   const itens = lancamentos.map((l) => `
     <div class="lancamento-item" onclick="abrirEdicaoLancamento('${l.id}')">
@@ -63,8 +67,10 @@ async function renderizarLancamentos() {
     </div>
   `).join('');
 
-  const totalFiltrado = lancamentos.reduce((s, l) => s + l.valor, 0);
-  const temFiltro = filtroCategoria || filtroSubcategoria;
+  // Resumo do período filtrado
+  const receita = lancamentos.filter(l => l.valor > 0).reduce((s, l) => s + l.valor, 0);
+  const despesa = lancamentos.filter(l => l.valor < 0).reduce((s, l) => s + Math.abs(l.valor), 0);
+  const saldo = receita - despesa;
 
   conteudo.innerHTML = `
     <div class="view-header">
@@ -75,7 +81,25 @@ async function renderizarLancamentos() {
       </nav>
     </div>
 
+    <div class="cards-saldo-grid" style="margin-bottom:var(--esp-md)">
+      <div class="card" style="text-align:center">
+        <div class="card__titulo">Receita</div>
+        <div class="positivo negrito">${formatarMoeda(receita)}</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div class="card__titulo">Despesa</div>
+        <div class="negativo negrito">${formatarMoeda(despesa)}</div>
+      </div>
+      <div class="card card--destaque" style="text-align:center">
+        <div class="card__titulo">Saldo</div>
+        <div class="${saldo >= 0 ? 'positivo' : 'negativo'} negrito">${formatarMoeda(saldo)}</div>
+      </div>
+    </div>
+
     <div class="filtros-lancamentos">
+      <input id="filtro-busca" class="filtro-select" type="text"
+        placeholder="🔍 Buscar descrição…" value="${filtroBusca}"
+        style="flex:2;min-width:0" />
       <select id="filtro-cat" class="filtro-select">
         ${selCatOpts}
       </select>
@@ -83,13 +107,13 @@ async function renderizarLancamentos() {
       <select id="filtro-subcat" class="filtro-select">
         ${selSubOpts}
       </select>` : ''}
-      ${temFiltro ? `<button class="filtro-limpar" onclick="limparFiltros()">✕ Limpar</button>` : ''}
+      ${temFiltro ? `<button class="filtro-limpar" onclick="limparFiltros()">✕</button>` : ''}
     </div>
 
     ${temFiltro ? `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--esp-sm);font-size:var(--tam-sm)">
       <span class="texto-secundario">${lancamentos.length} lançamento${lancamentos.length !== 1 ? 's' : ''}</span>
-      <span class="negrito ${totalFiltrado >= 0 ? 'positivo' : 'negativo'}">${formatarMoeda(totalFiltrado)}</span>
+      <span class="negrito ${saldo >= 0 ? 'positivo' : 'negativo'}">${formatarMoeda(saldo)}</span>
     </div>` : ''}
 
     <div class="card">
@@ -121,17 +145,26 @@ async function renderizarLancamentos() {
       renderizarLancamentos();
     };
   }
+
+  let timerBusca = null;
+  document.getElementById('filtro-busca').addEventListener('input', (e) => {
+    clearTimeout(timerBusca);
+    timerBusca = setTimeout(() => {
+      filtroBusca = e.target.value;
+      renderizarLancamentos();
+    }, 300);
+  });
 }
 
 function limparFiltros() {
   filtroCategoria = '';
   filtroSubcategoria = '';
+  filtroBusca = '';
   renderizarLancamentos();
 }
 
 async function abrirEdicaoLancamento(id) {
-  const { data: lancamentos } = await buscarLancamentosPorMes(anoListagem, mesListagem);
-  const l = (lancamentos || []).find((x) => x.id === id);
+  const { data: l } = await buscarLancamentoPorId(id);
   if (!l) return;
 
   abrirBottomSheet(htmlFormLancamento(l));
@@ -156,8 +189,11 @@ async function abrirEdicaoLancamento(id) {
   });
 
   const painel = document.getElementById('bottom-sheet__conteudo');
+
+  // Botão excluir esta parcela
   const btnExcluir = document.createElement('button');
   btnExcluir.className = 'btn btn--perigo';
+  btnExcluir.style.marginTop = 'var(--esp-sm)';
   btnExcluir.textContent = 'Excluir lançamento';
   btnExcluir.onclick = async () => {
     if (!confirm('Excluir este lançamento?')) return;
@@ -171,4 +207,24 @@ async function abrirEdicaoLancamento(id) {
     }
   };
   painel.appendChild(btnExcluir);
+
+  // Botão excluir grupo de parcelas
+  if (l.grupo_parcelas && l.parcela_total > 1) {
+    const btnGrupo = document.createElement('button');
+    btnGrupo.className = 'btn btn--perigo';
+    btnGrupo.style.marginTop = 'var(--esp-xs)';
+    btnGrupo.textContent = `Excluir todas as ${l.parcela_total} parcelas`;
+    btnGrupo.onclick = async () => {
+      if (!confirm(`Excluir todas as ${l.parcela_total} parcelas de "${l.descricao.replace(/ \d+\/\d+$/, '')}"?`)) return;
+      const { error } = await deletarGrupoParcelas(l.grupo_parcelas);
+      if (error) {
+        mostrarToast('Erro ao excluir parcelas.', 'erro');
+      } else {
+        fecharBottomSheet();
+        mostrarToast('Todas as parcelas excluídas.', 'sucesso');
+        renderizarLancamentos();
+      }
+    };
+    painel.appendChild(btnGrupo);
+  }
 }

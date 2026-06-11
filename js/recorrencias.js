@@ -59,11 +59,14 @@ function htmlCardRecorrencia(rec, total, atual) {
 function vincularAcoesRecorrencia(rec, mesAno, proximo) {
   document.getElementById('rec-confirmar').onclick = async () => {
     const valor = parseFloat(document.getElementById('rec-valor').value);
-    const hoje = new Date().toISOString().slice(0, 10);
+    const agora = new Date();
+    const ultimoDia = new Date(agora.getFullYear(), agora.getMonth() + 1, 0).getDate();
+    const dia = Math.min(rec.dia_do_mes || agora.getDate(), ultimoDia);
+    const dataEvento = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
     await inserirLancamento({
       descricao: rec.descricao,
       valor: -Math.abs(valor),
-      data_evento: hoje,
+      data_evento: dataEvento,
       categoria: rec.categoria,
       subcategoria: rec.subcategoria,
       meio: rec.meio,

@@ -51,7 +51,7 @@ async function salvarLancamento(dados) {
 
 async function salvarLancamentoParcelado(base, totalParcelas) {
   const grupoParcelas = gerarUUID();
-  const valorParcela = Math.floor((base.valor / totalParcelas) * 100) / 100;
+  const valorParcela = Math.round((base.valor / totalParcelas) * 100) / 100;
   const lancamentos = [];
 
   for (let i = 1; i <= totalParcelas; i++) {

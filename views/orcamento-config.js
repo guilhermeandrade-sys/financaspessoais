@@ -5,6 +5,7 @@ let _orcAnoRef = new Date().getFullYear();
 let _orcAba = 'orcamento'; // 'orcamento' | 'recorrencias'
 
 async function renderizarOrcamentoConfig() {
+  _orcAba = 'orcamento'; // reseta ao entrar na tela
   const conteudo = document.getElementById('conteudo-principal');
   conteudo.innerHTML = '<div class="loading">Carregando…</div>';
 

@@ -76,6 +76,16 @@ async function atualizarLancamento(id, campos) {
   return { data, error };
 }
 
+async function buscarLancamentoPorId(id) {
+  const { data, error } = await db
+    .from('fp_lancamentos')
+    .select('*')
+    .eq('id', id)
+    .single();
+  if (error) console.error('buscarLancamentoPorId:', error);
+  return { data, error };
+}
+
 async function deletarLancamento(id) {
   const { error } = await db.from('fp_lancamentos').delete().eq('id', id);
   if (error) console.error('deletarLancamento:', error);

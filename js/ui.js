@@ -65,7 +65,7 @@ const DICIONARIO_SUGESTAO = [
   { p: ['uber', 'taxi', '99pop', 'cabify'], c: 'Transporte', s: 'Outros' },
   { p: ['netflix', 'spotify', 'apple', 'google one', 'youtube', 'amazon prime', 'disney', 'hbo', 'microsoft', 'adobe', 'dropbox', 'icloud'], c: 'Comunicação', s: 'Apps (Netflix, Spotify, etc)' },
   { p: ['claro', 'vivo', 'tim ', 'oi ', 'nextel', 'celular', 'telefone', 'telecom'], c: 'Comunicação', s: 'Telefone Celular' },
-  { p: ['internet', 'fibra', 'banda larga', 'net ', 'sky ', 'oi fibra'], c: 'Comunicação', s: 'Apps (Netflix, Spotify, etc)' },
+  { p: ['internet', 'fibra', 'banda larga', 'net ', 'sky ', 'oi fibra'], c: 'Comunicação', s: 'Internet' },
   { p: ['drogasil', 'drogaria', 'droga', 'farmacia', 'ultrafarma', 'pacheco', 'nissei'], c: 'Pessoais', s: 'Farmácia' },
   { p: ['manicure', 'esmalte', 'unha'], c: 'Pessoais', s: 'Manicure' },
   { p: ['salao', 'barbeiro', 'barbearia', 'cabeleireiro', 'hair'], c: 'Pessoais', s: 'Salão/Barbeiro' },
