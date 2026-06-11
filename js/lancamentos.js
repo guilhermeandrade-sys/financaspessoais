@@ -4,11 +4,39 @@ function gerarUUID() {
   return crypto.randomUUID();
 }
 
+function _normDesc(s) {
+  return (s || '').toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+async function verificarDuplicata(dados) {
+  const d = new Date(dados.data_evento + 'T12:00:00');
+  const antes = new Date(d); antes.setDate(d.getDate() - 3);
+  const depois = new Date(d); depois.setDate(d.getDate() + 3);
+  const { data: candidatos } = await buscarLancamentosPorPeriodo(
+    antes.toISOString().slice(0, 10),
+    depois.toISOString().slice(0, 10)
+  );
+  if (!candidatos) return null;
+  const descNova = _normDesc(dados.descricao).slice(0, 12);
+  return candidatos.find(
+    (l) => Math.abs(l.valor - dados.valor) < 0.01 && _normDesc(l.descricao).includes(descNova)
+  ) || null;
+}
+
 async function salvarLancamento(dados) {
   const { parcelas, ...base } = dados;
 
   if (parcelas > 1) {
     return salvarLancamentoParcelado(base, parcelas);
+  }
+
+  // Alerta de possível duplicata
+  const duplicata = await verificarDuplicata(base);
+  if (duplicata) {
+    const confirmar = confirm(
+      `Possível duplicata detectada:\n"${duplicata.descricao}" em ${formatarData(duplicata.data_evento)} (${formatarMoeda(duplicata.valor)})\n\nLançar mesmo assim?`
+    );
+    if (!confirmar) return null;
   }
 
   const { data, error } = await inserirLancamento(base);

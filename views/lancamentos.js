@@ -54,6 +54,7 @@ async function renderizarLancamentos() {
         <div class="lancamento-item__meta">
           ${formatarData(l.data_evento)} · ${l.categoria}${l.subcategoria ? ' / ' + l.subcategoria : ''} · ${l.meio}
           ${l.parcela_total > 1 ? ` · ${l.parcela_atual}/${l.parcela_total}` : ''}
+          ${l.observacao ? `<br><span class="lancamento-item__obs">📝 ${l.observacao}</span>` : ''}
         </div>
       </div>
       <div class="lancamento-item__valor ${l.valor >= 0 ? 'positivo' : 'negativo'}">
@@ -143,6 +144,7 @@ async function abrirEdicaoLancamento(id) {
       subcategoria: dados.subcategoria,
       meio:         dados.meio,
       tipo:         dados.tipo,
+      observacao:   dados.observacao,
     });
     if (error) {
       mostrarToast('Erro ao salvar.', 'erro');

@@ -1,7 +1,8 @@
-// View: Configuração de Orçamento
+// View: Configuração de Orçamento + Recorrências
 
 let _orcMesRef = new Date().getMonth() + 1;
 let _orcAnoRef = new Date().getFullYear();
+let _orcAba = 'orcamento'; // 'orcamento' | 'recorrencias'
 
 async function renderizarOrcamentoConfig() {
   const conteudo = document.getElementById('conteudo-principal');
@@ -73,16 +74,22 @@ async function renderizarOrcamentoConfig() {
   conteudo.innerHTML = `
     <div class="view-header">
       <h2 class="view-titulo">Orçamento</h2>
-      <nav class="nav-mes">
+    </div>
+    <div class="analise-abas" style="margin-bottom:var(--esp-md)">
+      <button class="analise-aba ${_orcAba === 'orcamento' ? 'analise-aba--ativa' : ''}" onclick="_mudarOrcAba('orcamento')">Valores</button>
+      <button class="analise-aba ${_orcAba === 'recorrencias' ? 'analise-aba--ativa' : ''}" onclick="_mudarOrcAba('recorrencias')">Recorrências</button>
+    </div>
+    <div id="orc-conteudo">
+      <nav class="nav-mes" style="margin-bottom:var(--esp-md)">
         <button class="nav-mes__btn" id="orc-mes-anterior">‹</button>
         <span class="nav-mes__label">${formatarMesAno(_orcAnoRef, _orcMesRef)}</span>
         <button class="nav-mes__btn" id="orc-mes-proximo">›</button>
       </nav>
-      <p class="texto-secundario" style="font-size:var(--tam-xs);margin-top:var(--esp-xs)">
+      <p class="texto-secundario" style="font-size:var(--tam-xs);margin-bottom:var(--esp-md)">
         Alterações valem a partir de ${formatarMesAno(_orcAnoRef, _orcMesRef)}
       </p>
+      <div class="orc-lista">${blocos}</div>
     </div>
-    <div class="orc-lista">${blocos}</div>
   `;
 
   document.getElementById('orc-mes-anterior').onclick = () => {
@@ -155,5 +162,102 @@ function _abrirAdicionarSubcat(cat) {
   upsertOrcamentoSubcat(cat, nome, valor, validoAPartir).then(({ error }) => {
     if (error) mostrarToast('Erro ao adicionar.', 'erro');
     else { mostrarToast('Subcategoria adicionada!', 'sucesso'); renderizarOrcamentoConfig(); }
+  });
+}
+
+function _mudarOrcAba(aba) {
+  _orcAba = aba;
+  if (aba === 'recorrencias') {
+    _renderizarRecorrencias();
+  } else {
+    renderizarOrcamentoConfig();
+  }
+}
+
+async function _renderizarRecorrencias() {
+  const conteudo = document.getElementById('orc-conteudo');
+  if (!conteudo) return;
+  conteudo.innerHTML = '<div class="loading">Carregando…</div>';
+
+  const { data: recs, error } = await buscarTodasRecorrencias();
+  if (error) { conteudo.innerHTML = '<p class="erro centralizado">Erro ao carregar.</p>'; return; }
+
+  const totalAtivas = (recs || [])
+    .filter((r) => r.ativa)
+    .reduce((s, r) => s + Math.abs(r.valor_esperado), 0);
+
+  const linhas = (recs || []).map((r) => `
+    <div class="orc-linha" style="opacity:${r.ativa ? 1 : 0.45}">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:var(--tam-sm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.descricao}</div>
+        <div class="texto-secundario" style="font-size:var(--tam-xs)">${r.categoria}${r.subcategoria ? ' / ' + r.subcategoria : ''} · dia ${r.dia_do_mes || '?'}</div>
+      </div>
+      <div class="orc-linha__controles">
+        <input type="number" class="orc-linha__input" value="${Math.abs(r.valor_esperado)}" min="0" step="0.01"
+          onblur="_salvarValorRec(this, '${r.id}')" />
+        <button class="orc-linha__excluir" title="${r.ativa ? 'Desativar' : 'Ativar'}"
+          onclick="_toggleRecorrencia('${r.id}', ${r.ativa})">${r.ativa ? '⏸' : '▶'}</button>
+        <button class="orc-linha__excluir" title="Excluir"
+          onclick="_excluirRecorrencia('${r.id}', '${r.descricao.replace(/'/g, '')}')">✕</button>
+      </div>
+    </div>
+  `).join('');
+
+  conteudo.innerHTML = `
+    <div class="card" style="margin-bottom:var(--esp-md);display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div class="card__titulo">Total mensal ativo</div>
+        <div class="card__valor negativo">${formatarMoeda(totalAtivas)}</div>
+      </div>
+      <button class="btn btn--ghost btn--sm" onclick="_abrirNovaRecorrencia()">+ nova</button>
+    </div>
+    <div class="card">
+      ${linhas || '<p class="texto-secundario centralizado" style="padding:var(--esp-lg)">Nenhuma recorrência cadastrada.</p>'}
+    </div>
+  `;
+}
+
+async function _salvarValorRec(input, id) {
+  const valor = parseFloat(input.value.replace(',', '.'));
+  if (isNaN(valor) || valor < 0) { input.value = ''; return; }
+  const { error } = await atualizarRecorrencia(id, { valor_esperado: -Math.abs(valor) });
+  if (error) mostrarToast('Erro ao salvar.', 'erro');
+  else {
+    input.classList.add('orc-linha__input--salvo');
+    setTimeout(() => input.classList.remove('orc-linha__input--salvo'), 1200);
+  }
+}
+
+async function _toggleRecorrencia(id, ativa) {
+  const { error } = await atualizarRecorrencia(id, { ativa: !ativa });
+  if (error) mostrarToast('Erro ao atualizar.', 'erro');
+  else _renderizarRecorrencias();
+}
+
+async function _excluirRecorrencia(id, descricao) {
+  if (!confirm(`Excluir a recorrência "${descricao}"?`)) return;
+  const { error } = await deletarRecorrencia(id);
+  if (error) mostrarToast('Erro ao excluir.', 'erro');
+  else { mostrarToast('Recorrência excluída.', 'sucesso'); _renderizarRecorrencias(); }
+}
+
+function _abrirNovaRecorrencia() {
+  const desc = prompt('Descrição da recorrência:')?.trim();
+  if (!desc) return;
+  const valor = parseFloat(prompt('Valor mensal esperado (R$):')?.replace(',', '.'));
+  if (isNaN(valor) || valor <= 0) { mostrarToast('Valor inválido.', 'erro'); return; }
+  const dia = parseInt(prompt('Dia do mês (ex: 10):') || '1', 10);
+  const cat = prompt('Categoria:')?.trim();
+  if (!cat || !CATEGORIAS.includes(cat)) { mostrarToast('Categoria inválida.', 'erro'); return; }
+  const sub = prompt('Subcategoria (opcional):')?.trim() || null;
+  const meio = prompt('Meio (cartao / pix / outro):')?.trim() || 'cartao';
+
+  inserirRecorrenciaNova({
+    descricao: desc, valor_esperado: -Math.abs(valor),
+    dia_do_mes: dia, categoria: cat, subcategoria: sub,
+    meio, ativa: true,
+  }).then(({ error }) => {
+    if (error) mostrarToast('Erro ao criar.', 'erro');
+    else { mostrarToast('Recorrência criada!', 'sucesso'); _renderizarRecorrencias(); }
   });
 }

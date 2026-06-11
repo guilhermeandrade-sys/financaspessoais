@@ -230,6 +230,11 @@ function htmlFormLancamento(lancamento = {}) {
         <label>Parcelado em quantas vezes? (deixe 1 para à vista)</label>
         <input type="number" name="parcelas" min="1" max="60" value="1" />
       </div>
+      <div class="form-grupo">
+        <label>Observação <span class="texto-secundario" style="font-weight:400">(opcional)</span></label>
+        <input type="text" name="observacao" value="${lancamento.observacao || ''}"
+               placeholder="Ex: reembolso pendente, aniversário da Li…" autocomplete="off" />
+      </div>
       <button type="submit" class="btn btn--primario" style="margin-top:var(--esp-sm)">
         ${lancamento.id ? 'Salvar' : 'Lançar'}
       </button>
@@ -341,6 +346,7 @@ function inicializarFormLancamento(aoSalvar) {
       tipo,
       status:       'realizado',
       parcelas:     parseInt(fd.get('parcelas') || '1', 10),
+      observacao:   fd.get('observacao') || null,
     };
     await aoSalvar(dados);
   });

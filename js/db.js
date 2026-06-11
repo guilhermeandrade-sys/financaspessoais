@@ -162,6 +162,28 @@ async function buscarTodoOrcamento() {
 
 // ===== RECORRÊNCIAS =====
 
+async function buscarTodasRecorrencias() {
+  const { data, error } = await db
+    .from('fp_recorrencias')
+    .select('*')
+    .order('ativa', { ascending: false })
+    .order('descricao');
+  if (error) console.error('buscarTodasRecorrencias:', error);
+  return { data, error };
+}
+
+async function inserirRecorrenciaNova(rec) {
+  const { data, error } = await db.from('fp_recorrencias').insert(rec).select().single();
+  if (error) console.error('inserirRecorrenciaNova:', error);
+  return { data, error };
+}
+
+async function deletarRecorrencia(id) {
+  const { error } = await db.from('fp_recorrencias').delete().eq('id', id);
+  if (error) console.error('deletarRecorrencia:', error);
+  return { error };
+}
+
 async function buscarRecorrenciasAtivas() {
   const { data, error } = await db
     .from('fp_recorrencias')

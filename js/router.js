@@ -33,7 +33,19 @@ function navegarPara(view, params) {
   VIEWS[view]();
 }
 
+function toggleTema() {
+  const claro = document.body.classList.toggle('light-mode');
+  localStorage.setItem('temaClaro', claro ? '1' : '');
+  document.getElementById('btn-tema').textContent = claro ? '☀️' : '🌙';
+}
+
 function inicializarApp() {
+  // Restaura preferência de tema
+  if (localStorage.getItem('temaClaro')) {
+    document.body.classList.add('light-mode');
+    document.getElementById('btn-tema').textContent = '☀️';
+  }
+
   document.querySelectorAll('.tab-item').forEach((btn) => {
     btn.addEventListener('click', () => navegarPara(btn.dataset.view));
   });

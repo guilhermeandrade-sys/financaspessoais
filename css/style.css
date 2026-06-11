@@ -43,6 +43,43 @@
   --largura-sidebar-collapsed: 68px;
 }
 
+/* ===== BOTÃO DE TEMA ===== */
+.btn-tema {
+  position: fixed;
+  top: var(--esp-md);
+  right: var(--esp-md);
+  z-index: 100;
+  background: var(--cor-superficie-2);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-full);
+  width: 36px;
+  height: 36px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  transition: background 0.2s;
+}
+.btn-tema:hover { background: var(--cor-borda); }
+
+/* ===== LIGHT MODE ===== */
+body.light-mode {
+  --cor-fundo: #f0f0f8;
+  --cor-superficie: #ffffff;
+  --cor-superficie-2: #e8e8f4;
+  --cor-borda: #c8c8e0;
+  --cor-primaria: #5a4ad0;
+  --cor-primaria-hover: #4a3ac0;
+  --cor-texto: #1a1a2e;
+  --cor-texto-secundario: #55558a;
+  --cor-texto-invertido: #ffffff;
+  --cor-sucesso: #1a7a45;
+  --cor-alerta: #a06000;
+  --cor-erro: #b02020;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -673,6 +710,13 @@ html, body {
   font-weight: 700;
 }
 .cor-alerta { color: #ca8a04; }
+
+/* ===== OBSERVAÇÃO NOS LANÇAMENTOS ===== */
+.lancamento-item__obs {
+  font-size: var(--tam-xs);
+  color: var(--cor-texto-secundario);
+  font-style: italic;
+}
 
 /* ===== ANÁLISE — ABAS ===== */
 .analise-abas {
