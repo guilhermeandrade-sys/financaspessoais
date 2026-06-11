@@ -1,6 +1,68 @@
 // Camada de acesso ao Supabase — toda comunicação com o banco passa por aqui
 // Usa a variável global `db` inicializada em auth.js
 
+// ===== CATEGORIAS =====
+
+async function buscarCategorias() {
+  const { data, error } = await db
+    .from('fp_categorias')
+    .select('*')
+    .eq('ativa', true)
+    .order('ordem');
+  if (error) console.error('buscarCategorias:', error);
+  return { data, error };
+}
+
+async function inserirCategoria(categoria) {
+  const { data, error } = await db.from('fp_categorias').insert(categoria).select().single();
+  if (error) console.error('inserirCategoria:', error);
+  return { data, error };
+}
+
+async function atualizarCategoria(nome, campos) {
+  const { data, error } = await db.from('fp_categorias').update(campos).eq('nome', nome).select().single();
+  if (error) console.error('atualizarCategoria:', error);
+  return { data, error };
+}
+
+async function deletarCategoria(nome) {
+  const { error } = await db.from('fp_categorias').delete().eq('nome', nome);
+  if (error) console.error('deletarCategoria:', error);
+  return { error };
+}
+
+async function buscarSubcategorias(categoria) {
+  const { data, error } = await db
+    .from('fp_subcategorias')
+    .select('nome')
+    .eq('categoria', categoria)
+    .order('nome');
+  if (error) console.error('buscarSubcategorias:', error);
+  return { data, error };
+}
+
+async function buscarTodasSubcategorias() {
+  const { data, error } = await db
+    .from('fp_subcategorias')
+    .select('categoria, nome')
+    .order('categoria')
+    .order('nome');
+  if (error) console.error('buscarTodasSubcategorias:', error);
+  return { data, error };
+}
+
+async function inserirSubcategoria(categoria, nome) {
+  const { data, error } = await db.from('fp_subcategorias').insert({ categoria, nome }).select().single();
+  if (error) console.error('inserirSubcategoria:', error);
+  return { data, error };
+}
+
+async function deletarSubcategoria(categoria, nome) {
+  const { error } = await db.from('fp_subcategorias').delete().eq('categoria', categoria).eq('nome', nome);
+  if (error) console.error('deletarSubcategoria:', error);
+  return { error };
+}
+
 // ===== LANÇAMENTOS =====
 
 async function buscarLancamentosPorMes(ano, mes) {

@@ -8,7 +8,7 @@ async function renderizarHome() {
   conteudo.innerHTML = '<div class="loading">Carregando…</div>';
 
   const resumo = await calcularResumoMes(anoSelecionado, mesSelecionado);
-  const dispDia = calcularDisponivePorDia(resumo, anoSelecionado, mesSelecionado);
+  const dispDia = calcularDisponivelPorDia(resumo, anoSelecionado, mesSelecionado);
 
   const hoje = new Date();
   const ehMesAtual = hoje.getFullYear() === anoSelecionado && hoje.getMonth() + 1 === mesSelecionado;

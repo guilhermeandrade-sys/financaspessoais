@@ -230,6 +230,14 @@ function htmlFormLancamento(lancamento = {}) {
         <label>Parcelado em quantas vezes? (deixe 1 para à vista)</label>
         <input type="number" name="parcelas" min="1" max="60" value="1" />
       </div>
+      ${lancamento.id ? `
+      <div class="form-grupo">
+        <label>Status</label>
+        <select name="status">
+          <option value="realizado" ${(lancamento.status || 'realizado') === 'realizado' ? 'selected' : ''}>Realizado</option>
+          <option value="projetado" ${lancamento.status === 'projetado' ? 'selected' : ''}>Projetado</option>
+        </select>
+      </div>` : ''}
       <div class="form-grupo">
         <label>Observação <span class="texto-secundario" style="font-weight:400">(opcional)</span></label>
         <input type="text" name="observacao" value="${lancamento.observacao || ''}"
@@ -344,7 +352,7 @@ function inicializarFormLancamento(aoSalvar) {
       subcategoria: fd.get('subcategoria') || null,
       meio:         fd.get('meio'),
       tipo,
-      status:       'realizado',
+      status:       fd.get('status') || 'realizado',
       parcelas:     parseInt(fd.get('parcelas') || '1', 10),
       observacao:   fd.get('observacao') || null,
     };

@@ -128,6 +128,13 @@ function _abrirFormPatrimonio(tipo, dados) {
       <label class="form-label">Instituição (opcional)</label>
       <input id="_pat-inst" class="form-input" type="text" value="${dados?.instituicao || ''}" placeholder="ex: XP, Caixa" autocomplete="off" />
     </div>
+    <div class="form-grupo">
+      <label class="form-label">Prazo / horizonte</label>
+      <select id="_pat-prazo" class="form-input">
+        <option value="" ${!dados?.prazo_projeto ? 'selected' : ''}>— não definido —</option>
+        ${['curto','medio','longo','aposentadoria'].map(p => `<option value="${p}" ${dados?.prazo_projeto === p ? 'selected' : ''}>${p}</option>`).join('')}
+      </select>
+    </div>
     <button class="btn btn--primario" style="width:100%;margin-top:var(--esp-md)"
       onclick="_salvarPatrimonio('${tipo}', '${dados?.id || ''}')">Salvar</button>
   `);
@@ -141,7 +148,8 @@ async function _salvarPatrimonio(tipo, id) {
   const instituicao = document.getElementById('_pat-inst')?.value.trim() || null;
   if (!descricao) { mostrarToast('Informe a descrição.', 'erro'); return; }
   if (isNaN(valor) || valor < 0) { mostrarToast('Valor inválido.', 'erro'); return; }
-  const campos = { tipo, subtipo, descricao, valor, instituicao };
+  const prazo_projeto = document.getElementById('_pat-prazo')?.value || null;
+  const campos = { tipo, subtipo, descricao, valor, instituicao, prazo_projeto: prazo_projeto || null };
   const { error } = id
     ? await atualizarPatrimonio(id, campos)
     : await inserirPatrimonio(campos);

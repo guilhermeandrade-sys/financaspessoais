@@ -1,42 +1,45 @@
 // View: Análise por período
 
 let _analiseAba = 'periodo'; // 'periodo' | 'evolucao' | 'busca'
+let _analiseInicio = null;
+let _analiseFim = null;
 
 async function renderizarAnalise() {
+  _analiseAba = 'periodo'; // reseta ao entrar na tela
+
   const conteudo = document.getElementById('conteudo-principal');
   const hoje = new Date();
   const anoAtual = hoje.getFullYear();
   const mesAtual = hoje.getMonth() + 1;
-  const inicio = `${anoAtual}-${String(mesAtual).padStart(2, '0')}-01`;
-  const fim = new Date(anoAtual, mesAtual, 0).toISOString().slice(0, 10);
+
+  if (!_analiseInicio) _analiseInicio = `${anoAtual}-${String(mesAtual).padStart(2, '0')}-01`;
+  if (!_analiseFim)    _analiseFim    = new Date(anoAtual, mesAtual, 0).toISOString().slice(0, 10);
 
   conteudo.innerHTML = `
     <div class="view-header">
       <h2 class="view-titulo">Análise</h2>
     </div>
     <div class="analise-abas">
-      <button class="analise-aba ${_analiseAba === 'periodo' ? 'analise-aba--ativa' : ''}" onclick="_mudarAnaliseAba('periodo')">Por período</button>
-      <button class="analise-aba ${_analiseAba === 'evolucao' ? 'analise-aba--ativa' : ''}" onclick="_mudarAnaliseAba('evolucao')">Evolução</button>
-      <button class="analise-aba ${_analiseAba === 'busca' ? 'analise-aba--ativa' : ''}" onclick="_mudarAnaliseAba('busca')">Busca</button>
+      <button class="analise-aba analise-aba--ativa" onclick="_mudarAnaliseAba('periodo')">Por período</button>
+      <button class="analise-aba" onclick="_mudarAnaliseAba('evolucao')">Evolução</button>
+      <button class="analise-aba" onclick="_mudarAnaliseAba('busca')">Busca</button>
     </div>
     <div id="analise-conteudo"></div>
   `;
 
-  await _renderizarAbaAnalise(inicio, fim);
+  await _renderizarAbaAnalise();
 }
 
 function _mudarAnaliseAba(aba) {
   _analiseAba = aba;
   document.querySelectorAll('.analise-aba').forEach((b) => {
-    b.classList.toggle('analise-aba--ativa', b.textContent.trim() === { periodo: 'Por período', evolucao: 'Evolução', busca: 'Busca' }[aba]);
+    const label = { periodo: 'Por período', evolucao: 'Evolução', busca: 'Busca' }[aba];
+    b.classList.toggle('analise-aba--ativa', b.textContent.trim() === label);
   });
-  const hoje = new Date();
-  const inicio = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`;
-  const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).toISOString().slice(0, 10);
-  _renderizarAbaAnalise(inicio, fim);
+  _renderizarAbaAnalise();
 }
 
-async function _renderizarAbaAnalise(inicio, fim) {
+async function _renderizarAbaAnalise() {
   const area = document.getElementById('analise-conteudo');
   if (!area) return;
 
@@ -45,23 +48,22 @@ async function _renderizarAbaAnalise(inicio, fim) {
       <div class="card" style="margin-bottom:var(--esp-md)">
         <div class="form-grupo">
           <label>De</label>
-          <input type="date" id="analise-inicio" value="${inicio}" />
+          <input type="date" id="analise-inicio" value="${_analiseInicio}" />
         </div>
         <div class="form-grupo">
           <label>Até</label>
-          <input type="date" id="analise-fim" value="${fim}" />
+          <input type="date" id="analise-fim" value="${_analiseFim}" />
         </div>
         <button id="analise-buscar" class="btn btn--primario">Buscar</button>
       </div>
       <div id="analise-resultado"></div>
     `;
     document.getElementById('analise-buscar').onclick = async () => {
-      await _renderizarPeriodo(
-        document.getElementById('analise-inicio').value,
-        document.getElementById('analise-fim').value
-      );
+      _analiseInicio = document.getElementById('analise-inicio').value;
+      _analiseFim    = document.getElementById('analise-fim').value;
+      await _renderizarPeriodo(_analiseInicio, _analiseFim);
     };
-    await _renderizarPeriodo(inicio, fim);
+    await _renderizarPeriodo(_analiseInicio, _analiseFim);
 
   } else if (_analiseAba === 'evolucao') {
     area.innerHTML = '<div class="loading">Carregando…</div>';
@@ -162,12 +164,10 @@ async function _renderizarEvolucao(area) {
     meses.push({ ano: a, mes: m });
   }
 
-  // Busca dados de todos os meses necessários em paralelo
   const resumos = await Promise.all(
     meses.map(({ ano: a, mes: m }) => calcularResumoMes(a, m))
   );
 
-  // Categorias que tiveram gasto em algum mês
   const catsAtivas = new Set();
   for (const r of resumos) {
     Object.keys(r.porCategoria).forEach((c) => catsAtivas.add(c));
@@ -178,7 +178,6 @@ async function _renderizarEvolucao(area) {
     return totalB - totalA;
   });
 
-  // Totais mensais de despesa
   const totaisMes = resumos.map((r) => r.despesa);
   const maxTotal = Math.max(...totaisMes, 1);
 
@@ -186,7 +185,7 @@ async function _renderizarEvolucao(area) {
     <div class="card" style="margin-bottom:var(--esp-md)">
       <h3 class="analise-secao-titulo">Despesa total por mês</h3>
       <div class="evolucao-barras">
-        ${meses.map(({ ano: a, mes: m }, i) => {
+        ${meses.map(({ mes: m }, i) => {
           const val = totaisMes[i];
           const h = Math.round((val / maxTotal) * 80);
           return `
@@ -252,7 +251,7 @@ async function _executarBusca(texto) {
 
   const total = data.reduce((s, l) => s + l.valor, 0);
   const itens = data.map((l) => `
-    <div class="lancamento-item" onclick="navegarPara('lancamentos', {ano: ${new Date(l.data_evento + 'T12:00:00').getFullYear()}, mes: ${new Date(l.data_evento + 'T12:00:00').getMonth() + 1}})">
+    <div class="lancamento-item" onclick="abrirEdicaoLancamento('${l.id}')">
       <div class="lancamento-item__info">
         <div class="lancamento-item__descricao">${l.descricao}</div>
         <div class="lancamento-item__meta">

@@ -47,7 +47,7 @@ async function calcularResumoMes(ano, mes) {
   return resumo;
 }
 
-function calcularDisponivePorDia(resumo, ano, mes) {
+function calcularDisponivelPorDia(resumo, ano, mes) {
   const hoje = new Date();
   const diasNoMes = new Date(ano, mes, 0).getDate();
   const diaAtual = (hoje.getFullYear() === ano && hoje.getMonth() + 1 === mes)
