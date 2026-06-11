@@ -16,6 +16,17 @@ async function buscarLancamentosPorMes(ano, mes) {
   return { data, error };
 }
 
+async function buscarLancamentosPorTexto(texto) {
+  const { data, error } = await db
+    .from('fp_lancamentos')
+    .select('*')
+    .ilike('descricao', `%${texto}%`)
+    .order('data_evento', { ascending: false })
+    .limit(200);
+  if (error) console.error('buscarLancamentosPorTexto:', error);
+  return { data, error };
+}
+
 async function buscarLancamentosAno(ano) {
   const { data, error } = await db
     .from('fp_lancamentos')

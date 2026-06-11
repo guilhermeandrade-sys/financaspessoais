@@ -674,6 +674,111 @@ html, body {
 }
 .cor-alerta { color: #ca8a04; }
 
+/* ===== ANÁLISE — ABAS ===== */
+.analise-abas {
+  display: flex;
+  gap: var(--esp-xs);
+  margin-bottom: var(--esp-md);
+  background: var(--cor-superficie);
+  border-radius: var(--raio-full);
+  padding: 3px;
+}
+.analise-aba {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-radius: var(--raio-full);
+  color: var(--cor-texto-secundario);
+  font-size: var(--tam-sm);
+  font-weight: 500;
+  padding: var(--esp-xs) var(--esp-sm);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.analise-aba--ativa {
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto);
+  font-weight: 700;
+}
+
+/* ===== ANÁLISE — LINHAS POR CATEGORIA ===== */
+.analise-linha { margin-bottom: var(--esp-md); cursor: pointer; }
+.analise-linha:last-child { margin-bottom: 0; }
+.analise-linha__cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--esp-xs);
+}
+.analise-linha__cat { font-weight: 600; font-size: var(--tam-sm); }
+.analise-linha__val { font-size: var(--tam-sm); font-weight: 700; }
+.analise-secao-titulo {
+  font-size: var(--tam-sm);
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--esp-md);
+}
+
+/* ===== ANÁLISE — EVOLUÇÃO BARRAS TOTAIS ===== */
+.evolucao-barras {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--esp-sm);
+  height: 110px;
+  padding-top: var(--esp-lg);
+}
+.evolucao-barra-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  height: 100%;
+  justify-content: flex-end;
+}
+.evolucao-barra-val {
+  font-size: 9px;
+  color: var(--cor-texto-secundario);
+  text-align: center;
+  white-space: nowrap;
+}
+.evolucao-barra {
+  width: 100%;
+  background: var(--cor-primaria);
+  border-radius: var(--raio-sm) var(--raio-sm) 0 0;
+  min-height: 4px;
+  opacity: 0.8;
+}
+.evolucao-barra-label {
+  font-size: 10px;
+  color: var(--cor-texto-secundario);
+  margin-top: 2px;
+}
+
+/* ===== ANÁLISE — EVOLUÇÃO TABELA POR CATEGORIA ===== */
+.evolucao-tabela {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--esp-xs);
+  margin-top: var(--esp-xs);
+}
+.evolucao-cel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.evolucao-cel__label {
+  font-size: 9px;
+  color: var(--cor-texto-secundario);
+}
+.evolucao-cel__val {
+  font-size: 9px;
+  font-weight: 600;
+  text-align: center;
+}
+
 /* ===== PROJEÇÃO DE MESES FUTUROS ===== */
 .proj-card__cabecalho { cursor: pointer; }
 
