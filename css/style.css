@@ -436,6 +436,25 @@ html, body {
   border-color: var(--cor-primaria);
 }
 
+/* ===== BADGE TIPO (RECEITA / DESPESA) ===== */
+.badge-tipo {
+  display: inline-block;
+  font-size: var(--tam-xs);
+  font-weight: 600;
+  border-radius: var(--raio-full);
+  padding: 2px 8px;
+  margin-left: var(--esp-sm);
+  vertical-align: middle;
+}
+.badge-tipo--receita {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--cor-positivo);
+}
+.badge-tipo--despesa {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--cor-negativo);
+}
+
 /* ===== FILTROS DE LANÇAMENTOS ===== */
 .filtros-lancamentos {
   display: flex;
@@ -597,6 +616,73 @@ html, body {
   padding: var(--esp-xl);
   color: var(--cor-texto-secundario);
 }
+
+/* ===== VARIANTES BTN ===== */
+.btn--ghost {
+  background: transparent;
+  color: var(--cor-primaria);
+  border: 1px dashed var(--cor-primaria);
+  width: auto;
+}
+.btn--ghost:hover { background: rgba(124,106,247,0.1); }
+.btn--sm { padding: 4px var(--esp-md); font-size: var(--tam-sm); font-weight: 500; }
+
+/* ===== ORÇAMENTO CONFIG ===== */
+.orc-lista { display: flex; flex-direction: column; gap: var(--esp-md); }
+
+.orc-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--esp-md);
+}
+.orc-card__nome { font-weight: 700; font-size: var(--tam-base); }
+
+.orc-subcats { display: flex; flex-direction: column; gap: var(--esp-xs); }
+
+.orc-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--esp-xs) 0;
+  border-bottom: 1px solid var(--cor-borda);
+  gap: var(--esp-sm);
+}
+.orc-linha:last-child { border-bottom: none; }
+.orc-linha__nome { flex: 1; font-size: var(--tam-sm); color: var(--cor-texto-secundario); }
+
+.orc-linha__controles {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-xs);
+}
+
+.orc-linha__input {
+  width: 90px;
+  background: var(--cor-superficie-2);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  color: var(--cor-texto);
+  font-size: var(--tam-sm);
+  padding: 4px var(--esp-sm);
+  text-align: right;
+}
+.orc-linha__input:focus { outline: none; border-color: var(--cor-primaria); }
+.orc-linha__input--salvo { border-color: var(--cor-positivo); }
+
+.orc-linha__excluir {
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  font-size: var(--tam-xs);
+  padding: 2px 4px;
+  border-radius: var(--raio-sm);
+  line-height: 1;
+}
+.orc-linha__excluir:hover { color: var(--cor-erro); }
+
+.orc-card__adicionar { margin-top: var(--esp-sm); }
 
 /* ===================================================
    TABLET (768px+) — conteúdo centralizado e mais largo

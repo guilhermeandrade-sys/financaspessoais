@@ -5,6 +5,7 @@ const VIEWS = {
   lancamentos: renderizarLancamentos,
   analise:     renderizarAnalise,
   patrimonio:  renderizarPatrimonio,
+  orcamento:   renderizarOrcamentoConfig,
 };
 
 let viewAtual = 'home';

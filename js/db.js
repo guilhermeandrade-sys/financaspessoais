@@ -110,6 +110,34 @@ async function upsertOrcamento(categoria, valorMensal, validoAPartir) {
   return { data, error };
 }
 
+async function upsertOrcamentoSubcat(categoria, subcategoria, valorMensal, validoAPartir) {
+  const { data, error } = await db
+    .from('fp_orcamento')
+    .upsert(
+      { categoria, subcategoria: subcategoria || null, valor_mensal: valorMensal, valido_a_partir: validoAPartir },
+      { onConflict: 'categoria,subcategoria,valido_a_partir' }
+    )
+    .select()
+    .single();
+  if (error) console.error('upsertOrcamentoSubcat:', error);
+  return { data, error };
+}
+
+async function deletarOrcamento(id) {
+  const { error } = await db.from('fp_orcamento').delete().eq('id', id);
+  if (error) console.error('deletarOrcamento:', error);
+  return { error };
+}
+
+async function buscarTodoOrcamento() {
+  const { data, error } = await db
+    .from('fp_orcamento')
+    .select('*')
+    .order('valido_a_partir', { ascending: false });
+  if (error) console.error('buscarTodoOrcamento:', error);
+  return { data, error };
+}
+
 // ===== RECORRÊNCIAS =====
 
 async function buscarRecorrenciasAtivas() {

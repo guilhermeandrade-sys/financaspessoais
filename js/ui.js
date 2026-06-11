@@ -195,8 +195,10 @@ function htmlFormLancamento(lancamento = {}) {
         <div id="sugestao-categoria" class="sugestao-chip oculto"></div>
       </div>
       <div class="form-grupo">
-        <label>Valor (use negativo para despesa)</label>
-        <input type="number" name="valor" step="0.01" required value="${lancamento.valor || ''}" placeholder="-150.00" />
+        <label>Valor <span id="badge-tipo" class="badge-tipo"></span></label>
+        <input type="number" name="valor" step="0.01" min="0" required
+               value="${lancamento.valor != null ? Math.abs(lancamento.valor) : ''}"
+               placeholder="150,00" />
       </div>
       <div class="form-grupo">
         <label>Data do evento</label>
@@ -259,13 +261,31 @@ function inicializarFormLancamento(aoSalvar) {
     carregarIndiceSugestoes();
   }
 
-  // Atualiza subcategorias quando categoria muda manualmente
+  function atualizarBadgeTipo() {
+    const badge = document.getElementById('badge-tipo');
+    if (!badge) return;
+    const tipo = TIPO_POR_CATEGORIA[selCategoria.value];
+    if (!selCategoria.value) { badge.textContent = ''; badge.className = 'badge-tipo'; return; }
+    if (tipo === 'Receita') {
+      badge.textContent = '↑ Receita';
+      badge.className = 'badge-tipo badge-tipo--receita';
+    } else {
+      badge.textContent = '↓ Despesa';
+      badge.className = 'badge-tipo badge-tipo--despesa';
+    }
+  }
+
+  // Atualiza subcategorias e badge quando categoria muda manualmente
   selCategoria.addEventListener('change', () => {
     const subs = SUBCATEGORIAS[selCategoria.value] || [];
     selSubcat.innerHTML = '<option value="">Selecione…</option>' +
       subs.map(s => `<option value="${s}">${s}</option>`).join('');
     chipSugestao.classList.add('oculto');
+    atualizarBadgeTipo();
   });
+
+  // Badge inicial se já tem categoria (modo edição)
+  atualizarBadgeTipo();
 
   // Auto-sugestão ao digitar
   let timerSugestao = null;
@@ -308,14 +328,17 @@ function inicializarFormLancamento(aoSalvar) {
   document.getElementById('form-lancamento').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
+    const cat = fd.get('categoria');
+    const tipo = TIPO_POR_CATEGORIA[cat] || 'Variável';
+    const valorAbs = Math.abs(parseFloat(fd.get('valor')));
     const dados = {
       descricao:    fd.get('descricao'),
-      valor:        parseFloat(fd.get('valor')),
+      valor:        tipo === 'Receita' ? valorAbs : -valorAbs,
       data_evento:  fd.get('data_evento'),
-      categoria:    fd.get('categoria'),
+      categoria:    cat,
       subcategoria: fd.get('subcategoria') || null,
       meio:         fd.get('meio'),
-      tipo:         TIPO_POR_CATEGORIA[fd.get('categoria')] || 'Variável',
+      tipo,
       status:       'realizado',
       parcelas:     parseInt(fd.get('parcelas') || '1', 10),
     };
