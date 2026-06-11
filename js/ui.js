@@ -93,7 +93,7 @@ const DICIONARIO_SUGESTAO = [
 function _normalizar(texto) {
   return texto
     .toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')  // remove acentos
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9 ]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -250,6 +250,11 @@ function htmlFormLancamento(lancamento = {}) {
   `;
 }
 
+function _aplicarSugestaoChip(btn) {
+  _aplicarSugestao(btn.dataset.cat, btn.dataset.sub || '');
+  btn.closest('.sugestao-chip').classList.add('oculto');
+}
+
 function _aplicarSugestao(cat, sub) {
   const selCat = document.getElementById('sel-categoria');
   const selSub = document.getElementById('sel-subcategoria');
@@ -300,6 +305,18 @@ function inicializarFormLancamento(aoSalvar) {
   // Badge inicial se já tem categoria (modo edição)
   atualizarBadgeTipo();
 
+  function _renderizarChipSugestao(sug) {
+    const cat = sug.categoria.replace(/"/g, '&quot;');
+    const sub = (sug.subcategoria || '').replace(/"/g, '&quot;');
+    chipSugestao.innerHTML =
+      `<span class="sugestao-chip__label">Sugestão:</span>
+       <button type="button" class="sugestao-chip__btn" data-cat="${cat}" data-sub="${sub}"
+               onclick="_aplicarSugestaoChip(this)">
+         ${sug.categoria}${sug.subcategoria ? ' / ' + sug.subcategoria : ''}
+       </button>`;
+    chipSugestao.classList.remove('oculto');
+  }
+
   // Auto-sugestão ao digitar
   let timerSugestao = null;
   inpDesc.addEventListener('input', () => {
@@ -309,13 +326,7 @@ function inicializarFormLancamento(aoSalvar) {
       if (selCategoria.value) return;
       const sug = buscarSugestao(inpDesc.value);
       if (sug) {
-        chipSugestao.innerHTML =
-          `<span class="sugestao-chip__label">Sugestão:</span>
-           <button type="button" class="sugestao-chip__btn"
-                   onclick="_aplicarSugestao('${sug.categoria}','${sug.subcategoria}');this.closest('.sugestao-chip').classList.add('oculto')">
-             ${sug.categoria}${sug.subcategoria ? ' / ' + sug.subcategoria : ''}
-           </button>`;
-        chipSugestao.classList.remove('oculto');
+        _renderizarChipSugestao(sug);
       } else {
         chipSugestao.classList.add('oculto');
       }
@@ -326,15 +337,7 @@ function inicializarFormLancamento(aoSalvar) {
   if (inpDesc.value && !selCategoria.value) {
     setTimeout(() => {
       const sug = buscarSugestao(inpDesc.value);
-      if (sug) {
-        chipSugestao.innerHTML =
-          `<span class="sugestao-chip__label">Sugestão:</span>
-           <button type="button" class="sugestao-chip__btn"
-                   onclick="_aplicarSugestao('${sug.categoria}','${sug.subcategoria}');this.closest('.sugestao-chip').classList.add('oculto')">
-             ${sug.categoria}${sug.subcategoria ? ' / ' + sug.subcategoria : ''}
-           </button>`;
-        chipSugestao.classList.remove('oculto');
-      }
+      if (sug) _renderizarChipSugestao(sug);
     }, 400);
   }
 

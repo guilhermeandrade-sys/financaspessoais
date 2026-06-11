@@ -14,16 +14,23 @@ async function calcularResumoMes(ano, mes) {
     orcamentoPorSubcategoria: {}, // { cat: { subcat: valor } }
   };
 
-  for (const orc of orcamentos || []) {
+  // Separa registros com e sem subcategoria para evitar double-counting
+  const orcsComSub = (orcamentos || []).filter((o) => o.subcategoria);
+  const orcsSemSub = (orcamentos || []).filter((o) => !o.subcategoria);
+  const catsComSubcat = new Set(orcsComSub.map((o) => o.categoria));
+
+  for (const orc of orcsComSub) {
     const cat = orc.categoria;
     const sub = orc.subcategoria;
-    if (sub) {
-      if (!resumo.orcamentoPorSubcategoria[cat]) resumo.orcamentoPorSubcategoria[cat] = {};
-      resumo.orcamentoPorSubcategoria[cat][sub] = (resumo.orcamentoPorSubcategoria[cat][sub] || 0) + orc.valor_mensal;
-      resumo.orcamentoPorCategoria[cat] = (resumo.orcamentoPorCategoria[cat] || 0) + orc.valor_mensal;
-    } else {
-      // fallback para orçamentos sem subcategoria (legado)
-      if (!resumo.orcamentoPorCategoria[cat]) resumo.orcamentoPorCategoria[cat] = orc.valor_mensal;
+    if (!resumo.orcamentoPorSubcategoria[cat]) resumo.orcamentoPorSubcategoria[cat] = {};
+    resumo.orcamentoPorSubcategoria[cat][sub] = (resumo.orcamentoPorSubcategoria[cat][sub] || 0) + orc.valor_mensal;
+    resumo.orcamentoPorCategoria[cat] = (resumo.orcamentoPorCategoria[cat] || 0) + orc.valor_mensal;
+  }
+
+  for (const orc of orcsSemSub) {
+    // Só usa orçamento de categoria quando não há subcategorias definidas (evita double-counting)
+    if (!catsComSubcat.has(orc.categoria)) {
+      resumo.orcamentoPorCategoria[orc.categoria] = orc.valor_mensal;
     }
   }
 

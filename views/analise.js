@@ -20,9 +20,9 @@ async function renderizarAnalise() {
       <h2 class="view-titulo">Análise</h2>
     </div>
     <div class="analise-abas">
-      <button class="analise-aba analise-aba--ativa" onclick="_mudarAnaliseAba('periodo')">Por período</button>
-      <button class="analise-aba" onclick="_mudarAnaliseAba('evolucao')">Evolução</button>
-      <button class="analise-aba" onclick="_mudarAnaliseAba('busca')">Busca</button>
+      <button class="analise-aba analise-aba--ativa" data-aba="periodo" onclick="_mudarAnaliseAba('periodo')">Por período</button>
+      <button class="analise-aba" data-aba="evolucao" onclick="_mudarAnaliseAba('evolucao')">Evolução</button>
+      <button class="analise-aba" data-aba="busca" onclick="_mudarAnaliseAba('busca')">Busca</button>
     </div>
     <div id="analise-conteudo"></div>
   `;
@@ -33,8 +33,7 @@ async function renderizarAnalise() {
 function _mudarAnaliseAba(aba) {
   _analiseAba = aba;
   document.querySelectorAll('.analise-aba').forEach((b) => {
-    const label = { periodo: 'Por período', evolucao: 'Evolução', busca: 'Busca' }[aba];
-    b.classList.toggle('analise-aba--ativa', b.textContent.trim() === label);
+    b.classList.toggle('analise-aba--ativa', b.dataset.aba === aba);
   });
   _renderizarAbaAnalise();
 }
@@ -93,6 +92,9 @@ async function _renderizarAbaAnalise() {
 }
 
 async function _renderizarPeriodo(dataInicio, dataFim) {
+  // Guarda o período atual para uso nos links de categoria
+  _analiseInicio = dataInicio;
+  _analiseFim = dataFim;
   const resultado = document.getElementById('analise-resultado');
   if (!resultado) return;
   resultado.innerHTML = '<div class="loading">Carregando…</div>';
@@ -118,8 +120,10 @@ async function _renderizarPeriodo(dataInicio, dataFim) {
     .sort((a, b) => b[1] - a[1])
     .map(([cat, val]) => {
       const pct = Math.round((val / maxVal) * 100);
+      const catEsc = cat.replace(/"/g, '&quot;');
       return `
-        <div class="analise-linha" onclick="navegarPara('lancamentos', {categoria: '${cat}'})">
+        <div class="analise-linha" data-cat="${catEsc}" data-inicio="${dataInicio}" data-fim="${dataFim}"
+             onclick="_abrirCategoriaNoPeriodo(this.dataset.cat,this.dataset.inicio,this.dataset.fim)">
           <div class="analise-linha__cabecalho">
             <span class="analise-linha__cat">${cat}</span>
             <span class="analise-linha__val negativo">${formatarMoeda(val)}</span>
@@ -278,4 +282,36 @@ function _mesAbrev(m) {
 function formatarMoedaCurto(val) {
   if (val >= 1000) return 'R$' + (val / 1000).toFixed(1).replace('.', ',') + 'k';
   return 'R$' + val.toFixed(0);
+}
+
+async function _abrirCategoriaNoPeriodo(cat, inicio, fim) {
+  abrirBottomSheet(`
+    <h3 style="margin-bottom:var(--esp-sm)">${cat}</h3>
+    <p class="texto-secundario" style="font-size:var(--tam-xs);margin-bottom:var(--esp-md)">${formatarData(inicio)} → ${formatarData(fim)}</p>
+    <div class="loading">Carregando…</div>
+  `);
+
+  const { data } = await buscarLancamentosPorPeriodo(inicio, fim);
+  const itens = (data || []).filter((l) => l.categoria === cat && l.valor < 0);
+  const total = itens.reduce((s, l) => s + Math.abs(l.valor), 0);
+
+  const html = itens.length
+    ? itens.map((l) => `
+      <div class="lancamento-item" onclick="fecharBottomSheet();abrirEdicaoLancamento('${l.id}')">
+        <div class="lancamento-item__info">
+          <div class="lancamento-item__descricao">${l.descricao}</div>
+          <div class="lancamento-item__meta">${formatarData(l.data_evento)}${l.subcategoria ? ' · ' + l.subcategoria : ''}</div>
+        </div>
+        <div class="lancamento-item__valor negativo">${formatarMoeda(Math.abs(l.valor))}</div>
+      </div>`).join('')
+    : '<p class="texto-secundario centralizado" style="padding:var(--esp-lg)">Nenhum lançamento.</p>';
+
+  abrirBottomSheet(`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--esp-md)">
+      <h3>${cat}</h3>
+      <span class="negrito negativo">${formatarMoeda(total)}</span>
+    </div>
+    <p class="texto-secundario" style="font-size:var(--tam-xs);margin-bottom:var(--esp-md)">${formatarData(inicio)} → ${formatarData(fim)} · ${itens.length} lançamento${itens.length !== 1 ? 's' : ''}</p>
+    <div class="card">${html}</div>
+  `);
 }

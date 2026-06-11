@@ -8,10 +8,13 @@ async function verificarRecorrenciasPendentes() {
   if (!recorrencias || recorrencias.length === 0) return;
 
   const { data: confirmacoes } = await buscarConfirmacoesDoMes(mesAno);
-  const idsConfirmados = new Set((confirmacoes || []).map((c) => c.recorrencia_id));
-
-  // Filtra as que ainda não foram processadas (sem status 'confirmado' ou 'rejeitado')
-  const pendentes = recorrencias.filter((r) => !idsConfirmados.has(r.id));
+  // Só exclui confirmado/rejeitado — 'adiado' reaparece na próxima sessão
+  const idsFinalizados = new Set(
+    (confirmacoes || [])
+      .filter((c) => c.status === 'confirmado' || c.status === 'rejeitado')
+      .map((c) => c.recorrencia_id)
+  );
+  const pendentes = recorrencias.filter((r) => !idsFinalizados.has(r.id));
   if (pendentes.length === 0) return;
 
   exibirFilaRecorrencias(pendentes, mesAno);
@@ -43,7 +46,7 @@ function htmlCardRecorrencia(rec, total, atual) {
     <h2 style="margin-bottom:var(--esp-md)">${rec.descricao}</h2>
     <div class="form-grupo">
       <label>Valor (editável)</label>
-      <input type="number" id="rec-valor" step="0.01" value="${rec.valor_esperado}" />
+      <input type="number" id="rec-valor" step="0.01" min="0" value="${Math.abs(rec.valor_esperado)}" />
     </div>
     <p class="texto-secundario" style="margin-bottom:var(--esp-md)">
       ${rec.categoria} · ${rec.subcategoria || ''} · ${rec.meio}

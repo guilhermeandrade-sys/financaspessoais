@@ -17,7 +17,7 @@ async function verificarDuplicata(dados) {
     depois.toISOString().slice(0, 10)
   );
   if (!candidatos) return null;
-  const descNova = _normDesc(dados.descricao).slice(0, 12);
+  const descNova = _normDesc(dados.descricao).slice(0, 18);
   return candidatos.find(
     (l) => Math.abs(l.valor - dados.valor) < 0.01 && _normDesc(l.descricao).includes(descNova)
   ) || null;

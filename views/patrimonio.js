@@ -15,7 +15,9 @@ async function renderizarPatrimonio() {
   const totalPassivos = passivos.reduce((s, p) => s + p.valor, 0);
   const liquido = totalAtivos - totalPassivos;
 
-  const htmlLista = (itens) => itens.map((p) => `
+  const htmlLista = (itens) => itens.map((p) => {
+    const descEsc = p.descricao.replace(/"/g, '&quot;');
+    return `
     <div class="lancamento-item">
       <div class="lancamento-item__info">
         <div class="lancamento-item__descricao">${p.descricao}</div>
@@ -25,11 +27,13 @@ async function renderizarPatrimonio() {
         <div class="lancamento-item__valor ${p.tipo === 'ativo' ? 'positivo' : 'negativo'}">
           ${formatarMoeda(p.valor)}
         </div>
-        <button class="btn btn--ghost btn--sm" style="padding:2px 6px;font-size:var(--tam-xs)" onclick="_editarPatrimonio('${p.id}')">✏️</button>
-        <button class="btn btn--ghost btn--sm" style="padding:2px 6px;font-size:var(--tam-xs)" onclick="_excluirPatrimonio('${p.id}','${p.descricao.replace(/'/g, '')}')">✕</button>
+        <button class="btn btn--ghost btn--sm" style="padding:2px 6px;font-size:var(--tam-xs)"
+          data-id="${p.id}" onclick="_editarPatrimonio(this.dataset.id)">✏️</button>
+        <button class="btn btn--ghost btn--sm" style="padding:2px 6px;font-size:var(--tam-xs)"
+          data-id="${p.id}" data-desc="${descEsc}" onclick="_excluirPatrimonio(this.dataset.id,this.dataset.desc)">✕</button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 
   const prazos = ['curto', 'medio', 'longo', 'aposentadoria'];
   const labels = { curto: 'Curto prazo', medio: 'Médio prazo', longo: 'Longo prazo', aposentadoria: 'Aposentadoria' };
@@ -38,7 +42,9 @@ async function renderizarPatrimonio() {
     if (!lista.length) return '';
     return `
       <h4 style="margin:var(--esp-md) 0 var(--esp-sm);color:var(--cor-texto-secundario);font-size:var(--tam-sm);text-transform:uppercase">${labels[prazo]}</h4>
-      ${lista.map((p) => `
+      ${lista.map((p) => {
+        const descEsc = p.descricao.replace(/"/g, '&quot;');
+        return `
         <div class="card" style="margin-bottom:var(--esp-sm)">
           <div style="display:flex;justify-content:space-between;align-items:flex-start">
             <div>
@@ -46,8 +52,10 @@ async function renderizarPatrimonio() {
               <span class="texto-secundario" style="font-size:var(--tam-sm);margin-left:var(--esp-sm)">${p.ano_alvo || ''}</span>
             </div>
             <div style="display:flex;gap:4px">
-              <button class="btn btn--ghost btn--sm" style="padding:2px 6px;font-size:var(--tam-xs)" onclick="_editarProjeto('${p.id}')">✏️</button>
-              <button class="btn btn--ghost btn--sm" style="padding:2px 6px;font-size:var(--tam-xs)" onclick="_excluirProjeto('${p.id}','${p.descricao.replace(/'/g, '')}')">✕</button>
+              <button class="btn btn--ghost btn--sm" style="padding:2px 6px;font-size:var(--tam-xs)"
+                data-id="${p.id}" onclick="_editarProjeto(this.dataset.id)">✏️</button>
+              <button class="btn btn--ghost btn--sm" style="padding:2px 6px;font-size:var(--tam-xs)"
+                data-id="${p.id}" data-desc="${descEsc}" onclick="_excluirProjeto(this.dataset.id,this.dataset.desc)">✕</button>
             </div>
           </div>
           <div style="display:flex;justify-content:space-between;margin-top:var(--esp-xs)">
@@ -55,8 +63,8 @@ async function renderizarPatrimonio() {
             <span class="texto-secundario">de ${formatarMoeda(p.valor_alvo)}</span>
           </div>
           ${htmlBarraProgresso(p.valor_aplicado, p.valor_alvo)}
-        </div>
-      `).join('')}
+        </div>`;
+      }).join('')}
     `;
   }).join('');
 
@@ -160,8 +168,7 @@ async function _salvarPatrimonio(tipo, id) {
 }
 
 async function _editarPatrimonio(id) {
-  const { data: todos } = await buscarPatrimonio();
-  const item = (todos || []).find((p) => p.id === id);
+  const { data: item } = await buscarPatrimonioPorId(id);
   if (!item) return;
   _abrirFormPatrimonio(item.tipo, item);
 }
@@ -231,8 +238,7 @@ async function _salvarProjeto(id) {
 }
 
 async function _editarProjeto(id) {
-  const { data: todos } = await buscarProjetos();
-  const item = (todos || []).find((p) => p.id === id);
+  const { data: item } = await buscarProjetoPorId(id);
   if (!item) return;
   _abrirFormProjeto(item);
 }

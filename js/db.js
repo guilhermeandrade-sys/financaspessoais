@@ -318,6 +318,12 @@ async function buscarPatrimonio() {
   return { data, error };
 }
 
+async function buscarPatrimonioPorId(id) {
+  const { data, error } = await db.from('fp_patrimonio').select('*').eq('id', id).single();
+  if (error) console.error('buscarPatrimonioPorId:', error);
+  return { data, error };
+}
+
 async function inserirPatrimonio(item) {
   const { data, error } = await db
     .from('fp_patrimonio')
@@ -346,6 +352,12 @@ async function deletarPatrimonio(id) {
 }
 
 // ===== PROJETOS =====
+
+async function buscarProjetoPorId(id) {
+  const { data, error } = await db.from('fp_projetos').select('*').eq('id', id).single();
+  if (error) console.error('buscarProjetoPorId:', error);
+  return { data, error };
+}
 
 async function buscarProjetos() {
   const { data, error } = await db
