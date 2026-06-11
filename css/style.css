@@ -674,6 +674,52 @@ html, body {
 }
 .cor-alerta { color: #ca8a04; }
 
+/* ===== PROJEÇÃO DE MESES FUTUROS ===== */
+.proj-card__cabecalho { cursor: pointer; }
+
+.proj-card__linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--esp-sm);
+}
+.proj-card__mes { font-weight: 700; font-size: var(--tam-base); }
+.proj-card__seta { color: var(--cor-texto-secundario); font-size: var(--tam-sm); }
+
+.proj-card__numeros {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--esp-sm);
+  margin-bottom: var(--esp-xs);
+}
+.proj-numero { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.proj-numero__label {
+  font-size: 10px;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+.proj-numero__valor { font-weight: 700; font-size: var(--tam-sm); }
+
+.proj-detalhes {
+  border-top: 1px solid var(--cor-borda);
+  margin-top: var(--esp-md);
+  padding-top: var(--esp-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-xs);
+}
+.proj-detalhe {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--tam-sm);
+}
+.proj-detalhe--grupo { margin-top: var(--esp-xs); }
+.proj-detalhe__nome { color: var(--cor-texto-secundario); flex: 1; }
+.proj-detalhe__valor { font-weight: 600; }
+
 /* ===== ORÇAMENTO CONFIG ===== */
 .orc-lista { display: flex; flex-direction: column; gap: var(--esp-md); }
 

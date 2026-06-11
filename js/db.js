@@ -16,6 +16,17 @@ async function buscarLancamentosPorMes(ano, mes) {
   return { data, error };
 }
 
+async function buscarLancamentosAno(ano) {
+  const { data, error } = await db
+    .from('fp_lancamentos')
+    .select('data_evento, valor, categoria, subcategoria, descricao, parcela_atual, parcela_total')
+    .gte('data_evento', `${ano}-01-01`)
+    .lte('data_evento', `${ano}-12-31`)
+    .order('data_evento');
+  if (error) console.error('buscarLancamentosAno:', error);
+  return { data, error };
+}
+
 async function buscarLancamentosPorPeriodo(dataInicio, dataFim) {
   const { data, error } = await db
     .from('fp_lancamentos')
