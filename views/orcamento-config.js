@@ -9,7 +9,6 @@ async function renderizarOrcamentoConfig() {
   const conteudo = document.getElementById('conteudo-principal');
   conteudo.innerHTML = '<div class="loading">Carregando…</div>';
 
-  const validoAPartir = `${_orcAnoRef}-${String(_orcMesRef).padStart(2, '0')}-01`;
   const { data: orcamentos, error } = await buscarOrcamentoPorMes(_orcAnoRef, _orcMesRef);
   if (error) {
     conteudo.innerHTML = '<p class="erro centralizado">Erro ao carregar orçamento.</p>';
@@ -176,9 +175,12 @@ async function _confirmarAdicionarSubcat(cat) {
   const valor = parseFloat(document.getElementById('_subcat-valor')?.value.replace(',', '.'));
   if (!nome) { mostrarToast('Informe o nome.', 'erro'); return; }
   if (isNaN(valor) || valor < 0) { mostrarToast('Valor inválido.', 'erro'); return; }
+  // Garante que a subcategoria exista no banco de subcategorias (ignora se já existir)
+  await inserirSubcategoria(cat, nome);
   const validoAPartir = `${_orcAnoRef}-${String(_orcMesRef).padStart(2, '0')}-01`;
   const { error } = await upsertOrcamentoSubcat(cat, nome, valor, validoAPartir);
   if (error) { mostrarToast('Erro ao adicionar.', 'erro'); return; }
+  await carregarCategorias();
   fecharBottomSheet();
   mostrarToast('Subcategoria adicionada!', 'sucesso');
   renderizarOrcamentoConfig();
@@ -480,6 +482,12 @@ async function _salvarEdicaoCategoria(nomeAtual) {
   const tipo = document.getElementById('_cat-edit-tipo')?.value;
   const ordem = parseInt(document.getElementById('_cat-edit-ordem')?.value || '99', 10);
   if (!nome) { mostrarToast('Informe o nome.', 'erro'); return; }
+  if (nome !== nomeAtual) {
+    const ok = confirm(
+      `Atenção: renomear "${nomeAtual}" para "${nome}" NÃO atualiza automaticamente os lançamentos e orçamentos já cadastrados com a categoria antiga.\n\nVocê precisará corrigir esses registros manualmente no Supabase.\n\nDeseja continuar mesmo assim?`
+    );
+    if (!ok) return;
+  }
   const { error } = await atualizarCategoria(nomeAtual, { nome, tipo, ordem });
   if (error) { mostrarToast('Erro ao salvar.', 'erro'); return; }
   await carregarCategorias();
@@ -499,12 +507,15 @@ async function _excluirCategoria(nome) {
 
 async function _gerenciarSubcats(categoria) {
   const { data: subs } = await buscarSubcategorias(categoria);
-  const linhas = (subs || []).map((s) => `
+  const linhas = (subs || []).map((s) => {
+    const nomeEsc = s.nome.replace(/"/g, '&quot;');
+    return `
     <div class="orc-linha">
       <span style="flex:1">${s.nome}</span>
-      <button class="orc-linha__excluir" onclick="_excluirSubcatDB('${categoria}','${s.nome.replace(/'/g, "\\'")}',this)">✕</button>
-    </div>
-  `).join('');
+      <button class="orc-linha__excluir" data-cat="${categoria}" data-nome="${nomeEsc}"
+        onclick="_excluirSubcatDB(this.dataset.cat,this.dataset.nome,this)">✕</button>
+    </div>`;
+  }).join('');
 
   abrirBottomSheet(`
     <h3 style="margin-bottom:var(--esp-md)">Subcategorias — ${categoria}</h3>
@@ -513,7 +524,8 @@ async function _gerenciarSubcats(categoria) {
     </div>
     <div style="display:flex;gap:var(--esp-sm)">
       <input id="_subcat-nova" class="form-input" type="text" placeholder="Nova subcategoria…" style="flex:1" autocomplete="off" />
-      <button class="btn btn--primario btn--sm" onclick="_adicionarSubcatDB('${categoria}')">+</button>
+      <button class="btn btn--primario btn--sm" data-cat="${categoria}"
+        onclick="_adicionarSubcatDB(this.dataset.cat)">+</button>
     </div>
   `);
 }

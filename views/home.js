@@ -145,7 +145,7 @@ async function renderizarHome() {
 
     ${htmlIndicadores}
 
-    ${dispDia > 0 ? `
+    ${ehMesAtual && dispDia > 0 ? `
     <div class="card" style="text-align:center">
       <div class="card__titulo">Disponível por dia</div>
       <div class="card__valor positivo">${formatarMoeda(dispDia)}</div>

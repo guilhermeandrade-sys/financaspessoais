@@ -81,6 +81,7 @@ async function renderizarLancamentos() {
       </nav>
     </div>
 
+    ${(todos && todos.length > 0) ? `
     <div class="cards-saldo-grid" style="margin-bottom:var(--esp-md)">
       <div class="card" style="text-align:center">
         <div class="card__titulo">Receita</div>
@@ -94,7 +95,7 @@ async function renderizarLancamentos() {
         <div class="card__titulo">Saldo</div>
         <div class="${saldo >= 0 ? 'positivo' : 'negativo'} negrito">${formatarMoeda(saldo)}</div>
       </div>
-    </div>
+    </div>` : ''}
 
     <div class="filtros-lancamentos">
       <input id="filtro-busca" class="filtro-select" type="text"

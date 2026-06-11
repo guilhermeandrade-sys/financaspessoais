@@ -8,40 +8,48 @@ async function renderizarProjecao() {
   const anoAtual = hoje.getFullYear();
   const mesAtual = hoje.getMonth() + 1;
 
+  // Próximos 6 meses (cruza o ano se necessário)
+  const mesesFuturos = [];
+  for (let i = 1; i <= 6; i++) {
+    let m = mesAtual + i;
+    let a = anoAtual;
+    if (m > 12) { m -= 12; a++; }
+    mesesFuturos.push({ ano: a, mes: m });
+  }
+
+  // Anos envolvidos na projeção
+  const anosNecessarios = [...new Set(mesesFuturos.map((x) => x.ano))];
+
   const [
-    { data: lancamentosAno },
-    { data: recorrencias },
-    { data: orcBase },
+    ...lancamentosAnos
   ] = await Promise.all([
-    buscarLancamentosAno(anoAtual),
+    ...anosNecessarios.map((a) => buscarLancamentosAno(a)),
+  ]);
+
+  // Mapa ano → lançamentos
+  const lancsPorAno = {};
+  anosNecessarios.forEach((a, i) => {
+    lancsPorAno[a] = lancamentosAnos[i].data || [];
+  });
+
+  const [{ data: recorrencias }, { data: orcBase }] = await Promise.all([
     buscarRecorrenciasAtivas(),
     buscarOrcamentoPorMes(anoAtual, mesAtual),
   ]);
 
-  // Orçamento mensal total (soma de todas as subcategorias de despesa)
   const totalOrcMensal = (orcBase || [])
     .filter((o) => TIPO_POR_CATEGORIA[o.categoria] !== 'Receita')
     .reduce((s, o) => s + o.valor_mensal, 0);
 
-  // Agrupa lançamentos futuros por mês
-  const lancFuturos = {};
-  for (const l of lancamentosAno || []) {
-    const [a, m] = l.data_evento.split('-').map(Number);
-    if (a !== anoAtual) continue;
-    if (m < mesAtual) continue; // ignora passado
-    if (!lancFuturos[m]) lancFuturos[m] = [];
-    lancFuturos[m].push(l);
-  }
-
-  // Total de recorrências ativas por mês (valor_esperado por recorrência)
   const totalRecMensal = (recorrencias || []).reduce((s, r) => s + Math.abs(r.valor_esperado), 0);
 
-  // Monta blocos para meses futuros (do próximo mês até dezembro)
-  const mesesFuturos = [];
-  for (let m = mesAtual + 1; m <= 12; m++) {
-    // Parcelas e lançamentos já cadastrados para esse mês futuro
-    const lancMes = lancFuturos[m] || [];
-    const comprometidoParcelas = lancMes
+  const blocos = mesesFuturos.map(({ ano, mes }) => {
+    const lancs = (lancsPorAno[ano] || []).filter((l) => {
+      const [a, m] = l.data_evento.split('-').map(Number);
+      return a === ano && m === mes;
+    });
+
+    const comprometidoParcelas = lancs
       .filter((l) => l.valor < 0)
       .reduce((s, l) => s + Math.abs(l.valor), 0);
 
@@ -50,23 +58,22 @@ async function renderizarProjecao() {
       ? Math.round(((comprometidoParcelas + totalRecMensal) / totalOrcMensal) * 100)
       : null;
 
-    // Detalhes de parcelas: agrupa por descricao
-    const parcelas = lancMes.filter((l) => l.parcela_total > 1 && l.valor < 0);
-    const recorrentesLancados = lancMes.filter((l) => (!l.parcela_total || l.parcela_total <= 1) && l.valor < 0);
+    const parcelas = lancs.filter((l) => l.parcela_total > 1 && l.valor < 0);
+    const recorrentesLancados = lancs.filter((l) => (!l.parcela_total || l.parcela_total <= 1) && l.valor < 0);
 
-    const htmlParcelas = parcelas.length > 0 ? parcelas.map((l) => `
+    const htmlParcelas = parcelas.map((l) => `
       <div class="proj-detalhe">
         <span class="proj-detalhe__nome">${l.descricao}</span>
         <span class="proj-detalhe__valor negativo">${formatarMoeda(Math.abs(l.valor))}</span>
       </div>
-    `).join('') : '';
+    `).join('');
 
-    const htmlRecLancados = recorrentesLancados.length > 0 ? recorrentesLancados.map((l) => `
+    const htmlRecLancados = recorrentesLancados.map((l) => `
       <div class="proj-detalhe">
         <span class="proj-detalhe__nome">${l.descricao}</span>
         <span class="proj-detalhe__valor negativo">${formatarMoeda(Math.abs(l.valor))}</span>
       </div>
-    `).join('') : '';
+    `).join('');
 
     const htmlRecorrencias = totalRecMensal > 0 ? `
       <div class="proj-detalhe proj-detalhe--grupo">
@@ -77,11 +84,11 @@ async function renderizarProjecao() {
 
     const temDetalhes = parcelas.length > 0 || recorrentesLancados.length > 0 || totalRecMensal > 0;
 
-    mesesFuturos.push(`
-      <div class="card proj-card" id="proj-${m}">
+    return `
+      <div class="card proj-card" id="proj-${ano}-${mes}">
         <div class="proj-card__cabecalho" onclick="toggleProjecaoDetalhes(this)" ${!temDetalhes ? 'style="cursor:default"' : ''}>
           <div class="proj-card__linha">
-            <span class="proj-card__mes">${formatarMesAno(anoAtual, m)}</span>
+            <span class="proj-card__mes">${formatarMesAno(ano, mes)}</span>
             ${temDetalhes ? '<span class="proj-card__seta">›</span>' : ''}
           </div>
           <div class="proj-card__numeros">
@@ -113,12 +120,12 @@ async function renderizarProjecao() {
           ${htmlRecorrencias}
         </div>` : ''}
       </div>
-    `);
-  }
+    `;
+  });
 
   conteudo.innerHTML = `
     <div class="view-header">
-      <h2 class="view-titulo">Projeção ${anoAtual}</h2>
+      <h2 class="view-titulo">Próximos 6 meses</h2>
       <p class="texto-secundario" style="font-size:var(--tam-xs);margin-top:var(--esp-xs)">
         Parcelas cadastradas + recorrências ativas vs. orçamento mensal
       </p>
@@ -132,10 +139,7 @@ async function renderizarProjecao() {
     </div>
 
     <div style="display:flex;flex-direction:column;gap:var(--esp-md)">
-      ${mesesFuturos.length > 0
-        ? mesesFuturos.join('')
-        : '<p class="texto-secundario centralizado" style="padding:var(--esp-xl)">Nenhum mês futuro para projetar neste ano.</p>'
-      }
+      ${blocos.join('')}
     </div>
   `;
 }
