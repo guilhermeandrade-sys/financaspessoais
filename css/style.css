@@ -9,6 +9,8 @@
   --cor-sucesso: #4caf78;
   --cor-alerta: #f5a623;
   --cor-erro: #e05555;
+  --cor-positivo: #4caf78;
+  --cor-negativo: #e05555;
   --cor-texto: #e8e8f0;
   --cor-texto-secundario: #8888aa;
   --cor-texto-invertido: #ffffff;
@@ -78,6 +80,8 @@ body.light-mode {
   --cor-sucesso: #1a7a45;
   --cor-alerta: #a06000;
   --cor-erro: #b02020;
+  --cor-positivo: #1a7a45;
+  --cor-negativo: #b02020;
 }
 
 *, *::before, *::after {
@@ -172,6 +176,13 @@ html, body {
 .tab-label {
   font-size: var(--tam-xs);
   font-weight: 500;
+}
+
+@media (max-width: 360px) {
+  .tab-label { display: none; }
+  .tab-icone { font-size: var(--tam-2xl); }
+  .tab-item { padding: var(--esp-xs); }
+  --altura-tab-bar: 52px;
 }
 
 /* ===== FAB ===== */
@@ -801,11 +812,16 @@ html, body {
 }
 
 /* ===== ANÁLISE — EVOLUÇÃO TABELA POR CATEGORIA ===== */
+.evolucao-tabela-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 .evolucao-tabela {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(6, minmax(80px, 1fr));
   gap: var(--esp-xs);
   margin-top: var(--esp-xs);
+  min-width: 480px;
 }
 .evolucao-cel {
   display: flex;

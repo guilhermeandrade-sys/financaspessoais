@@ -154,15 +154,32 @@ async function _excluirSubcat(orcId, cat, subcat) {
 }
 
 function _abrirAdicionarSubcat(cat) {
-  const nome = prompt(`Nome da nova subcategoria em "${cat}":`)?.trim();
-  if (!nome) return;
-  const valor = parseFloat(prompt(`Valor mensal para "${nome}" (R$):`)?.replace(',', '.'));
+  abrirBottomSheet(`
+    <h3 style="margin-bottom:var(--esp-md)">Nova subcategoria — ${cat}</h3>
+    <div class="form-grupo">
+      <label class="form-label">Nome</label>
+      <input id="_subcat-nome" class="form-input" type="text" placeholder="ex: Streaming" autocomplete="off" />
+    </div>
+    <div class="form-grupo">
+      <label class="form-label">Valor mensal (R$)</label>
+      <input id="_subcat-valor" class="form-input" type="number" min="0" step="0.01" placeholder="0,00" />
+    </div>
+    <button class="btn btn--primario" style="width:100%;margin-top:var(--esp-md)" onclick="_confirmarAdicionarSubcat('${cat}')">Salvar</button>
+  `);
+  setTimeout(() => document.getElementById('_subcat-nome')?.focus(), 100);
+}
+
+async function _confirmarAdicionarSubcat(cat) {
+  const nome = document.getElementById('_subcat-nome')?.value.trim();
+  const valor = parseFloat(document.getElementById('_subcat-valor')?.value.replace(',', '.'));
+  if (!nome) { mostrarToast('Informe o nome.', 'erro'); return; }
   if (isNaN(valor) || valor < 0) { mostrarToast('Valor inválido.', 'erro'); return; }
   const validoAPartir = `${_orcAnoRef}-${String(_orcMesRef).padStart(2, '0')}-01`;
-  upsertOrcamentoSubcat(cat, nome, valor, validoAPartir).then(({ error }) => {
-    if (error) mostrarToast('Erro ao adicionar.', 'erro');
-    else { mostrarToast('Subcategoria adicionada!', 'sucesso'); renderizarOrcamentoConfig(); }
-  });
+  const { error } = await upsertOrcamentoSubcat(cat, nome, valor, validoAPartir);
+  if (error) { mostrarToast('Erro ao adicionar.', 'erro'); return; }
+  fecharBottomSheet();
+  mostrarToast('Subcategoria adicionada!', 'sucesso');
+  renderizarOrcamentoConfig();
 }
 
 function _mudarOrcAba(aba) {
@@ -242,22 +259,60 @@ async function _excluirRecorrencia(id, descricao) {
 }
 
 function _abrirNovaRecorrencia() {
-  const desc = prompt('Descrição da recorrência:')?.trim();
-  if (!desc) return;
-  const valor = parseFloat(prompt('Valor mensal esperado (R$):')?.replace(',', '.'));
-  if (isNaN(valor) || valor <= 0) { mostrarToast('Valor inválido.', 'erro'); return; }
-  const dia = parseInt(prompt('Dia do mês (ex: 10):') || '1', 10);
-  const cat = prompt('Categoria:')?.trim();
-  if (!cat || !CATEGORIAS.includes(cat)) { mostrarToast('Categoria inválida.', 'erro'); return; }
-  const sub = prompt('Subcategoria (opcional):')?.trim() || null;
-  const meio = prompt('Meio (cartao / pix / outro):')?.trim() || 'cartao';
+  const optsCategoria = CATEGORIAS.map((c) => `<option value="${c}">${c}</option>`).join('');
+  abrirBottomSheet(`
+    <h3 style="margin-bottom:var(--esp-md)">Nova recorrência</h3>
+    <div class="form-grupo">
+      <label class="form-label">Descrição</label>
+      <input id="_rec-desc" class="form-input" type="text" placeholder="ex: Netflix" autocomplete="off" />
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--esp-sm)">
+      <div class="form-grupo">
+        <label class="form-label">Valor (R$)</label>
+        <input id="_rec-valor" class="form-input" type="number" min="0" step="0.01" placeholder="0,00" />
+      </div>
+      <div class="form-grupo">
+        <label class="form-label">Dia do mês</label>
+        <input id="_rec-dia" class="form-input" type="number" min="1" max="31" placeholder="10" />
+      </div>
+    </div>
+    <div class="form-grupo">
+      <label class="form-label">Categoria</label>
+      <select id="_rec-cat" class="form-input">${optsCategoria}</select>
+    </div>
+    <div class="form-grupo">
+      <label class="form-label">Subcategoria (opcional)</label>
+      <input id="_rec-sub" class="form-input" type="text" placeholder="opcional" autocomplete="off" />
+    </div>
+    <div class="form-grupo">
+      <label class="form-label">Meio de pagamento</label>
+      <select id="_rec-meio" class="form-input">
+        <option value="cartao">Cartão</option>
+        <option value="pix">PIX</option>
+        <option value="outro">Outro</option>
+      </select>
+    </div>
+    <button class="btn btn--primario" style="width:100%;margin-top:var(--esp-md)" onclick="_confirmarNovaRecorrencia()">Salvar</button>
+  `);
+  setTimeout(() => document.getElementById('_rec-desc')?.focus(), 100);
+}
 
-  inserirRecorrenciaNova({
+async function _confirmarNovaRecorrencia() {
+  const desc = document.getElementById('_rec-desc')?.value.trim();
+  const valor = parseFloat(document.getElementById('_rec-valor')?.value.replace(',', '.'));
+  const dia = parseInt(document.getElementById('_rec-dia')?.value || '1', 10);
+  const cat = document.getElementById('_rec-cat')?.value;
+  const sub = document.getElementById('_rec-sub')?.value.trim() || null;
+  const meio = document.getElementById('_rec-meio')?.value || 'cartao';
+  if (!desc) { mostrarToast('Informe a descrição.', 'erro'); return; }
+  if (isNaN(valor) || valor <= 0) { mostrarToast('Valor inválido.', 'erro'); return; }
+  const { error } = await inserirRecorrenciaNova({
     descricao: desc, valor_esperado: -Math.abs(valor),
     dia_do_mes: dia, categoria: cat, subcategoria: sub,
     meio, ativa: true,
-  }).then(({ error }) => {
-    if (error) mostrarToast('Erro ao criar.', 'erro');
-    else { mostrarToast('Recorrência criada!', 'sucesso'); _renderizarRecorrencias(); }
   });
+  if (error) { mostrarToast('Erro ao criar.', 'erro'); return; }
+  fecharBottomSheet();
+  mostrarToast('Recorrência criada!', 'sucesso');
+  _renderizarRecorrencias();
 }

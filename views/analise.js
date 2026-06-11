@@ -210,7 +210,7 @@ async function _renderizarEvolucao(area) {
           <span class="analise-linha__cat">${cat}</span>
           <span class="texto-secundario" style="font-size:var(--tam-xs)">${TIPO_POR_CATEGORIA[cat] || ''}</span>
         </div>
-        <div class="evolucao-tabela">
+        <div class="evolucao-tabela-scroll"><div class="evolucao-tabela">
           ${meses.map(({ mes: m }, i) => {
             const val = vals[i];
             const pct = Math.round((val / maxCat) * 100);
@@ -224,7 +224,7 @@ async function _renderizarEvolucao(area) {
               </div>
             `;
           }).join('')}
-        </div>
+        </div></div>
       </div>
     `;
   }).join('');
