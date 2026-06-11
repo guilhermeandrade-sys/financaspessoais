@@ -10,6 +10,11 @@ async function renderizarHome() {
   const resumo = await calcularResumoMes(anoSelecionado, mesSelecionado);
   const dispDia = calcularDisponivePorDia(resumo, anoSelecionado, mesSelecionado);
 
+  const hoje = new Date();
+  const ehMesAtual = hoje.getFullYear() === anoSelecionado && hoje.getMonth() + 1 === mesSelecionado;
+  const diasNoMes = new Date(anoSelecionado, mesSelecionado, 0).getDate();
+  const diaAtual = ehMesAtual ? hoje.getDate() : diasNoMes;
+
   const cardsCategorias = CATEGORIAS
     .filter((c) => TIPO_POR_CATEGORIA[c] !== 'Receita')
     .map((cat) => {
@@ -44,6 +49,20 @@ async function renderizarHome() {
 
       const pct = orcado > 0 ? Math.round((realizado / orcado) * 100) : null;
 
+      // Projeção "vai estourar?" — só para mês atual com orçamento definido
+      let htmlProjecao = '';
+      if (ehMesAtual && orcado > 0 && realizado > 0 && diaAtual > 0) {
+        const projecao = (realizado / diaAtual) * diasNoMes;
+        if (projecao > orcado * 1.05) {
+          // projeta estouro (margem de 5%)
+          const excesso = projecao - orcado;
+          htmlProjecao = `<div class="projecao projecao--alerta">↗ Projeção: ${formatarMoeda(projecao)} (+${formatarMoeda(excesso)})</div>`;
+        } else if (projecao >= orcado * 0.85) {
+          // projeta próximo do limite (85–105%)
+          htmlProjecao = `<div class="projecao projecao--atencao">↗ Projeção: ${formatarMoeda(projecao)}</div>`;
+        }
+      }
+
       return `
         <div class="card card--categoria" data-cat="${cat}">
           <div class="card-cat__cabecalho" onclick="toggleSubcats(this)">
@@ -59,11 +78,46 @@ async function renderizarHome() {
               ${pct !== null ? `<span class="texto-secundario" style="font-size:var(--tam-sm)">${pct}%</span>` : ''}
             </div>
             ${orcado > 0 ? htmlBarraProgresso(realizado, orcado) : ''}
+            ${htmlProjecao}
           </div>
           ${linhasSubcat ? `<div class="subcats oculto">${linhasSubcat}</div>` : ''}
         </div>
       `;
     }).join('');
+
+  // Indicadores resumidos (item 3)
+  const totalOrcado = Object.values(resumo.orcamentoPorCategoria).reduce((s, v) => s + v, 0);
+  const pctOrcamento = totalOrcado > 0 ? Math.round((resumo.despesa / totalOrcado) * 100) : null;
+  const taxaPoupanca = resumo.receita > 0 ? Math.round(((resumo.receita - resumo.despesa) / resumo.receita) * 100) : null;
+  const catsEstouradas = CATEGORIAS.filter((c) => {
+    const r = resumo.porCategoria[c] || 0;
+    const o = resumo.orcamentoPorCategoria[c] || 0;
+    return o > 0 && r > o;
+  }).length;
+
+  const htmlIndicadores = (pctOrcamento !== null || taxaPoupanca !== null) ? `
+    <div class="indicadores-strip">
+      ${taxaPoupanca !== null ? `
+        <div class="indicador">
+          <span class="indicador__label">Poupança</span>
+          <span class="indicador__valor ${taxaPoupanca >= 0 ? 'positivo' : 'negativo'}">${taxaPoupanca}%</span>
+        </div>` : ''}
+      ${pctOrcamento !== null ? `
+        <div class="indicador">
+          <span class="indicador__label">Orçamento usado</span>
+          <span class="indicador__valor ${pctOrcamento >= 100 ? 'negativo' : pctOrcamento >= 85 ? 'cor-alerta' : ''}">${pctOrcamento}%</span>
+        </div>` : ''}
+      ${catsEstouradas > 0 ? `
+        <div class="indicador">
+          <span class="indicador__label">Estouradas</span>
+          <span class="indicador__valor negativo">${catsEstouradas} cat${catsEstouradas > 1 ? '.' : '.'}</span>
+        </div>` : `
+        <div class="indicador">
+          <span class="indicador__label">Estouradas</span>
+          <span class="indicador__valor positivo">nenhuma</span>
+        </div>`}
+    </div>
+  ` : '';
 
   conteudo.innerHTML = `
     <div class="view-header">
@@ -88,6 +142,8 @@ async function renderizarHome() {
         <div class="card__valor negativo">${formatarMoeda(resumo.despesa)}</div>
       </div>
     </div>
+
+    ${htmlIndicadores}
 
     ${dispDia > 0 ? `
     <div class="card" style="text-align:center">
