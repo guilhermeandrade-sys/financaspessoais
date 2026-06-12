@@ -138,6 +138,20 @@ Reservas financeiras com metas por prazo.
 | prazo | text | 'curto', 'medio', 'longo', 'aposentadoria' |
 | created_at | timestamptz | |
 
+### `fp_patrimonio_historico`
+Snapshots mensais do patrimônio para acompanhar evolução ao longo do tempo.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | uuid PK | |
+| mes_ano | text UNIQUE | ex: '2026-06' |
+| total_ativos | numeric | |
+| total_passivos | numeric | |
+| patrimonio_liquido | numeric | total_ativos − total_passivos |
+| created_at | timestamptz | |
+
+**Comportamento:** registrado manualmente pelo usuário via botão "📸 Registrar snapshot do mês" na view Patrimônio. Upsert por `mes_ano` (registrar duas vezes no mesmo mês substitui). Exibido como gráfico de barras verticais na seção "Evolução do patrimônio".
+
 ---
 
 ## Categorias, subcategorias e tipos
@@ -220,10 +234,13 @@ O app gera N lançamentos automaticamente:
 - Gasto total por categoria com comparação ao orçado
 - Filtro por tipo (Fixo / Variável Essencial / Variável NE / Provisão)
 - Lista de lançamentos do período com busca por descrição
+- Botão "⬇ Exportar CSV" na aba "Por período" — gera e faz download client-side (Blob API) dos lançamentos do período selecionado; BOM UTF-8 para compatibilidade com Excel
 
 ### Patrimônio
 - Lista separada de ativos e passivos
 - Patrimônio líquido = total ativos − total passivos
+- Botão "📸 Registrar snapshot do mês" salva upsert em `fp_patrimonio_historico` para o mês corrente
+- Gráfico de barras verticais da evolução do patrimônio líquido ao longo dos snapshots registrados
 
 ### Projetos/Reservas
 - Lista de projetos com barra de progresso (aplicado vs. alvo)
@@ -239,7 +256,7 @@ O app gera N lançamentos automaticamente:
 - **Formulário de lançamento:** bottom sheet deslizável no mobile
 - **Botão ?:** fixo no canto superior direito (à esquerda do botão de tema); abre overlay de ajuda com 9 seções accordion (manual de uso completo)
 - **Overlay de ajuda:** full-screen no mobile (bottom sheet animado), modal centralizado no desktop; fecha com ESC ou botão ✕
-- **PWA:** `manifest.json` + service worker (cache `financas-v11`) + ícones em `icons/icon-192.png` e `icons/icon-512.png` — permite instalação na home screen sem App Store
+- **PWA:** `manifest.json` + service worker (cache `financas-v13`) + ícones em `icons/icon-192.png` e `icons/icon-512.png` — permite instalação na home screen sem App Store
 - Dois usuários autenticados — cada lançamento registra `usuario_id`
 
 ---

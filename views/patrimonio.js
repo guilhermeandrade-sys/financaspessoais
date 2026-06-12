@@ -4,9 +4,10 @@ async function renderizarPatrimonio() {
   const conteudo = document.getElementById('conteudo-principal');
   conteudo.innerHTML = '<div class="loading">Carregando…</div>';
 
-  const [{ data: patrimonio }, { data: projetos }] = await Promise.all([
+  const [{ data: patrimonio }, { data: projetos }, { data: historico }] = await Promise.all([
     buscarPatrimonio(),
     buscarProjetos(),
+    buscarHistoricoPatrimonio(),
   ]);
 
   const ativos = (patrimonio || []).filter((p) => p.tipo === 'ativo');
@@ -86,6 +87,8 @@ async function renderizarPatrimonio() {
           <div class="negativo negrito">${formatarMoeda(totalPassivos)}</div>
         </div>
       </div>
+      <button class="btn btn--ghost btn--sm" style="margin-top:var(--esp-md);font-size:var(--tam-sm)"
+        onclick="_registrarSnapshotPatrimonio()">📸 Registrar snapshot do mês</button>
     </div>
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--esp-sm)">
@@ -105,7 +108,77 @@ async function renderizarPatrimonio() {
       <button class="btn btn--ghost btn--sm" onclick="_abrirFormProjeto()">+ adicionar</button>
     </div>
     ${projetos && projetos.length ? htmlProjetos : '<p class="texto-secundario">Nenhum projeto cadastrado.</p>'}
+
+    ${_htmlHistoricoPatrimonio(historico || [])}
   `;
+}
+
+function _htmlHistoricoPatrimonio(historico) {
+  if (!historico.length) {
+    return `
+      <div style="margin-top:var(--esp-lg)">
+        <h3 style="color:var(--cor-texto-secundario);font-size:var(--tam-sm);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:var(--esp-sm)">Evolução do patrimônio</h3>
+        <p class="texto-secundario" style="font-size:var(--tam-sm)">Nenhum snapshot registrado. Use o botão acima para começar o histórico.</p>
+      </div>`;
+  }
+
+  const maxAbs = Math.max(...historico.map((h) => Math.abs(h.patrimonio_liquido)), 1);
+  const barras = historico.map((h) => {
+    const pct = Math.round((Math.abs(h.patrimonio_liquido) / maxAbs) * 80);
+    const cor = h.patrimonio_liquido < 0 ? 'background:var(--cor-negativo)' : '';
+    return `
+      <div class="evolucao-barra-col">
+        <span class="evolucao-barra-val">${_valorCurto(h.patrimonio_liquido)}</span>
+        <div class="evolucao-barra" style="height:${Math.max(pct, 4)}px;${cor}"></div>
+        <span class="evolucao-barra-label">${_mesAnoLabel(h.mes_ano)}</span>
+      </div>`;
+  }).join('');
+
+  const ultimo = historico[historico.length - 1];
+  return `
+    <div style="margin-top:var(--esp-lg)">
+      <h3 style="color:var(--cor-texto-secundario);font-size:var(--tam-sm);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:var(--esp-sm)">Evolução do patrimônio</h3>
+      <div class="card">
+        <div class="evolucao-barras">${barras}</div>
+        <div style="display:flex;justify-content:space-between;margin-top:var(--esp-sm);font-size:var(--tam-xs)" class="texto-secundario">
+          <span>Último snapshot: ${_mesAnoLabel(ultimo.mes_ano)}</span>
+          <span>Ativos ${_valorCurto(ultimo.total_ativos)} · Passivos ${_valorCurto(ultimo.total_passivos)}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function _mesAnoLabel(mesAno) {
+  const [ano, mes] = mesAno.split('-');
+  const abrevs = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return abrevs[parseInt(mes, 10) - 1] + '/' + ano.slice(2);
+}
+
+function _valorCurto(val) {
+  const abs = Math.abs(val);
+  const prefix = val < 0 ? '-' : '';
+  if (abs >= 1000000) return prefix + 'R$' + (abs / 1000000).toFixed(1).replace('.', ',') + 'M';
+  if (abs >= 1000) return prefix + 'R$' + (abs / 1000).toFixed(0) + 'k';
+  return prefix + 'R$' + abs.toFixed(0);
+}
+
+async function _registrarSnapshotPatrimonio() {
+  const { data: patrimonio } = await buscarPatrimonio();
+  const ativos = (patrimonio || []).filter((p) => p.tipo === 'ativo');
+  const passivos = (patrimonio || []).filter((p) => p.tipo === 'passivo');
+  const totalAtivos = ativos.reduce((s, p) => s + p.valor, 0);
+  const totalPassivos = passivos.reduce((s, p) => s + p.valor, 0);
+  const hoje = new Date();
+  const mesAno = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+  const { error } = await inserirSnapshotPatrimonio({
+    mes_ano: mesAno,
+    total_ativos: totalAtivos,
+    total_passivos: totalPassivos,
+    patrimonio_liquido: totalAtivos - totalPassivos,
+  });
+  if (error) { mostrarToast('Erro ao salvar snapshot.', 'erro'); return; }
+  mostrarToast(`Snapshot de ${mesAno} registrado!`, 'sucesso');
+  renderizarPatrimonio();
 }
 
 // ===== PATRIMÔNIO — FORMULÁRIO =====

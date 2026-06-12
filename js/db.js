@@ -401,3 +401,24 @@ async function deletarProjeto(id) {
   if (error) console.error('deletarProjeto:', error);
   return { error };
 }
+
+// ===== HISTÓRICO DE PATRIMÔNIO =====
+
+async function inserirSnapshotPatrimonio(snapshot) {
+  const { data, error } = await db
+    .from('fp_patrimonio_historico')
+    .upsert(snapshot, { onConflict: 'mes_ano' })
+    .select()
+    .single();
+  if (error) console.error('inserirSnapshotPatrimonio:', error);
+  return { data, error };
+}
+
+async function buscarHistoricoPatrimonio() {
+  const { data, error } = await db
+    .from('fp_patrimonio_historico')
+    .select('*')
+    .order('mes_ano');
+  if (error) console.error('buscarHistoricoPatrimonio:', error);
+  return { data, error };
+}

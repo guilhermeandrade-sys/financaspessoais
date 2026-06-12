@@ -151,6 +151,12 @@ async function _renderizarPeriodo(dataInicio, dataFim) {
       </div>
     </div>
     <div class="card">${linhas || '<p class="texto-secundario centralizado">Sem despesas no período.</p>'}</div>
+    ${lancamentos.length ? `
+    <div style="text-align:right;margin-top:var(--esp-sm)">
+      <button class="btn btn--ghost btn--sm" style="font-size:var(--tam-sm)"
+        data-inicio="${dataInicio}" data-fim="${dataFim}"
+        onclick="_exportarCSVPeriodo(this.dataset.inicio,this.dataset.fim)">⬇ Exportar CSV</button>
+    </div>` : ''}
   `;
 }
 
@@ -277,6 +283,36 @@ async function _executarBusca(texto) {
 
 function _mesAbrev(m) {
   return ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][m - 1];
+}
+
+async function _exportarCSVPeriodo(dataInicio, dataFim) {
+  const { data, error } = await buscarLancamentosPorPeriodo(dataInicio, dataFim);
+  if (error || !data) { mostrarToast('Erro ao exportar.', 'erro'); return; }
+
+  const cabecalho = ['data_evento','descricao','valor','categoria','subcategoria','meio','status','parcela_atual','parcela_total'];
+  const linhas = data.map((l) => [
+    l.data_evento,
+    '"' + (l.descricao || '').replace(/"/g, '""') + '"',
+    l.valor,
+    l.categoria || '',
+    l.subcategoria || '',
+    l.meio || '',
+    l.status || '',
+    l.parcela_atual != null ? l.parcela_atual : '',
+    l.parcela_total != null ? l.parcela_total : '',
+  ].join(','));
+
+  const csv = '﻿' + cabecalho.join(',') + '\n' + linhas.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `lancamentos_${dataInicio}_${dataFim}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  mostrarToast(`${data.length} lançamentos exportados.`, 'sucesso');
 }
 
 function formatarMoedaCurto(val) {
