@@ -210,23 +210,17 @@ function _toggleSecaoAjuda(id) {
   const secao = document.getElementById(`ajuda-sec-${id}`);
   if (!secao) return;
   const corpo = secao.querySelector('.ajuda-secao__corpo');
-  const seta  = secao.querySelector('.ajuda-secao__seta');
-  const btn   = secao.querySelector('.ajuda-secao__header');
   const aberta = !corpo.classList.contains('oculto');
 
-  // Fecha todas
-  document.querySelectorAll('.ajuda-secao__corpo').forEach((c) => c.classList.add('oculto'));
-  document.querySelectorAll('.ajuda-secao__seta').forEach((s) => s.textContent = '›');
-  document.querySelectorAll('.ajuda-secao__header').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+  document.querySelectorAll('.ajuda-secao').forEach((s) => {
+    const c = s.querySelector('.ajuda-secao__corpo');
+    const abrir = !aberta && s === secao;
+    c.classList.toggle('oculto', !abrir);
+    s.querySelector('.ajuda-secao__seta').textContent = abrir ? '⌄' : '›';
+    s.querySelector('.ajuda-secao__header').setAttribute('aria-expanded', abrir);
+  });
 
-  // Abre a clicada (toggle)
-  if (!aberta) {
-    corpo.classList.remove('oculto');
-    seta.textContent = '⌄';
-    btn.setAttribute('aria-expanded', 'true');
-    // Scroll suave até a seção
-    setTimeout(() => secao.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
-  }
+  if (!aberta) setTimeout(() => secao.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
 }
 
 function _versaoApp() {

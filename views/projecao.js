@@ -150,7 +150,7 @@ async function renderizarProjecao() {
 // usando todos os registros de fp_orcamento (já em ordem desc por valido_a_partir).
 // Para cada (categoria, subcategoria), pega o registro mais recente <= alvo.
 function _totalOrcParaMes(todos, ano, mes) {
-  const alvo = `${ano}-${String(mes).padStart(2, '0')}-01`;
+  const alvo = `${mesAnoParaString(ano, mes)}-01`;
   const vistos = new Set();
   let total = 0;
   for (const o of todos) {

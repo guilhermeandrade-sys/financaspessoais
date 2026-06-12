@@ -1,5 +1,7 @@
 // View: Configuração de Orçamento + Recorrências
 
+const esc = (s) => (s || '').replace(/"/g, '&quot;');
+
 let _orcMesRef = new Date().getMonth() + 1;
 let _orcAnoRef = new Date().getFullYear();
 let _orcAba = 'orcamento'; // 'orcamento' | 'recorrencias'
@@ -65,7 +67,7 @@ async function renderizarOrcamentoConfig() {
         ${subcatsExtra.join('')}
       </div>
       <div class="orc-card__adicionar">
-        <button class="btn btn--ghost btn--sm" data-cat="${cat.replace(/"/g, '&quot;')}"
+        <button class="btn btn--ghost btn--sm" data-cat="${esc(cat)}"
           onclick="_abrirAdicionarSubcat(this.dataset.cat)">+ subcategoria</button>
       </div>
     </div>
@@ -112,9 +114,9 @@ function _slug(str) {
 
 function _htmlLinhaSubcat(cat, subcat, valor, orcId) {
   const idBase = `orc-${_slug(cat)}-${_slug(subcat)}`;
-  const catEsc = cat.replace(/"/g, '&quot;');
-  const subEsc = subcat.replace(/"/g, '&quot;');
-  const idEsc = (orcId || '').replace(/"/g, '&quot;');
+  const catEsc = esc(cat);
+  const subEsc = esc(subcat);
+  const idEsc  = esc(orcId);
   return `
     <div class="orc-linha" id="${idBase}-linha">
       <span class="orc-linha__nome">${subcat}</span>
@@ -175,7 +177,7 @@ function _abrirAdicionarSubcat(cat) {
       <input id="_subcat-valor" class="form-input" type="number" min="0" step="0.01" placeholder="0,00" />
     </div>
     <button class="btn btn--primario" style="width:100%;margin-top:var(--esp-md)"
-      data-cat="${cat.replace(/"/g, '&quot;')}" onclick="_confirmarAdicionarSubcat(this)">Salvar</button>
+      data-cat="${esc(cat)}" onclick="_confirmarAdicionarSubcat(this)">Salvar</button>
   `);
   setTimeout(() => document.getElementById('_subcat-nome')?.focus(), 100);
 }
@@ -278,7 +280,7 @@ async function _editarRecorrencia(id) {
     <h3 style="margin-bottom:var(--esp-md)">Editar recorrência</h3>
     <div class="form-grupo">
       <label class="form-label">Descrição</label>
-      <input id="_rec-edit-desc" class="form-input" type="text" value="${r.descricao.replace(/"/g, '&quot;')}" autocomplete="off" />
+      <input id="_rec-edit-desc" class="form-input" type="text" value="${esc(r.descricao)}" autocomplete="off" />
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--esp-sm)">
       <div class="form-grupo">
@@ -296,7 +298,7 @@ async function _editarRecorrencia(id) {
     </div>
     <div class="form-grupo">
       <label class="form-label">Subcategoria (opcional)</label>
-      <input id="_rec-edit-sub" class="form-input" type="text" value="${(r.subcategoria || '').replace(/"/g, '&quot;')}" autocomplete="off" />
+      <input id="_rec-edit-sub" class="form-input" type="text" value="${esc(r.subcategoria)}" autocomplete="off" />
     </div>
     <div class="form-grupo">
       <label class="form-label">Meio de pagamento</label>
@@ -408,8 +410,8 @@ async function _renderizarCategorias() {
   if (error) { conteudo.innerHTML = '<p class="erro centralizado">Erro ao carregar.</p>'; return; }
 
   const linhas = (cats || []).map((c) => {
-    const nomeEsc = c.nome.replace(/"/g, '&quot;');
-    const tipoEsc = c.tipo.replace(/"/g, '&quot;');
+    const nomeEsc = esc(c.nome);
+    const tipoEsc = esc(c.tipo);
     return `
     <div class="orc-linha">
       <div style="flex:1;min-width:0">
@@ -481,7 +483,7 @@ function _editarCategoria(nome, tipo, ordem) {
     <h3 style="margin-bottom:var(--esp-md)">Editar categoria</h3>
     <div class="form-grupo">
       <label class="form-label">Nome</label>
-      <input id="_cat-edit-nome" class="form-input" type="text" value="${nome.replace(/"/g, '&quot;')}" autocomplete="off" />
+      <input id="_cat-edit-nome" class="form-input" type="text" value="${esc(nome)}" autocomplete="off" />
     </div>
     <div class="form-grupo">
       <label class="form-label">Tipo</label>
@@ -492,7 +494,7 @@ function _editarCategoria(nome, tipo, ordem) {
       <input id="_cat-edit-ordem" class="form-input" type="number" min="1" value="${ordem}" />
     </div>
     <button class="btn btn--primario" style="width:100%;margin-top:var(--esp-md)"
-      data-nome="${nome.replace(/"/g, '&quot;')}" onclick="_salvarEdicaoCategoria(this.dataset.nome)">Salvar</button>
+      data-nome="${esc(nome)}" onclick="_salvarEdicaoCategoria(this.dataset.nome)">Salvar</button>
   `);
 }
 
