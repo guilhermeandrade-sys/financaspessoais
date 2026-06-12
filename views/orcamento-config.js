@@ -65,7 +65,8 @@ async function renderizarOrcamentoConfig() {
         ${subcatsExtra.join('')}
       </div>
       <div class="orc-card__adicionar">
-        <button class="btn btn--ghost btn--sm" onclick="_abrirAdicionarSubcat('${cat}')">+ subcategoria</button>
+        <button class="btn btn--ghost btn--sm" data-cat="${cat.replace(/"/g, '&quot;')}"
+          onclick="_abrirAdicionarSubcat(this.dataset.cat)">+ subcategoria</button>
       </div>
     </div>
     `;
@@ -111,6 +112,9 @@ function _slug(str) {
 
 function _htmlLinhaSubcat(cat, subcat, valor, orcId) {
   const idBase = `orc-${_slug(cat)}-${_slug(subcat)}`;
+  const catEsc = cat.replace(/"/g, '&quot;');
+  const subEsc = subcat.replace(/"/g, '&quot;');
+  const idEsc = (orcId || '').replace(/"/g, '&quot;');
   return `
     <div class="orc-linha" id="${idBase}-linha">
       <span class="orc-linha__nome">${subcat}</span>
@@ -123,15 +127,19 @@ function _htmlLinhaSubcat(cat, subcat, valor, orcId) {
           min="0"
           step="0.01"
           placeholder="0,00"
-          onblur="_salvarLinhaOrc(this, '${cat}', '${subcat}', '${orcId || ''}')"
+          data-cat="${catEsc}" data-sub="${subEsc}" data-id="${idEsc}"
+          onblur="_salvarLinhaOrc(this)"
         />
-        <button class="orc-linha__excluir" title="Remover" onclick="_excluirSubcat('${orcId || ''}', '${cat}', '${subcat}')">✕</button>
+        <button class="orc-linha__excluir" title="Remover"
+          data-cat="${catEsc}" data-sub="${subEsc}" data-id="${idEsc}"
+          onclick="_excluirSubcat(this)">✕</button>
       </div>
     </div>
   `;
 }
 
-async function _salvarLinhaOrc(input, cat, subcat, orcId) {
+async function _salvarLinhaOrc(input) {
+  const { cat, sub: subcat, id: orcId } = input.dataset;
   const valor = parseFloat(input.value.replace(',', '.'));
   if (isNaN(valor) || valor < 0) { input.value = ''; return; }
   const validoAPartir = `${_orcAnoRef}-${String(_orcMesRef).padStart(2, '0')}-01`;
@@ -144,7 +152,8 @@ async function _salvarLinhaOrc(input, cat, subcat, orcId) {
   }
 }
 
-async function _excluirSubcat(orcId, cat, subcat) {
+async function _excluirSubcat(btn) {
+  const { cat, sub: subcat, id: orcId } = btn.dataset;
   if (!confirm(`Remover orçamento de "${subcat}" em ${cat}?`)) return;
   if (orcId) {
     const { error } = await deletarOrcamento(orcId);
@@ -165,12 +174,14 @@ function _abrirAdicionarSubcat(cat) {
       <label class="form-label">Valor mensal (R$)</label>
       <input id="_subcat-valor" class="form-input" type="number" min="0" step="0.01" placeholder="0,00" />
     </div>
-    <button class="btn btn--primario" style="width:100%;margin-top:var(--esp-md)" onclick="_confirmarAdicionarSubcat('${cat}')">Salvar</button>
+    <button class="btn btn--primario" style="width:100%;margin-top:var(--esp-md)"
+      data-cat="${cat.replace(/"/g, '&quot;')}" onclick="_confirmarAdicionarSubcat(this)">Salvar</button>
   `);
   setTimeout(() => document.getElementById('_subcat-nome')?.focus(), 100);
 }
 
-async function _confirmarAdicionarSubcat(cat) {
+async function _confirmarAdicionarSubcat(btn) {
+  const cat = btn.dataset.cat;
   const nome = document.getElementById('_subcat-nome')?.value.trim();
   const valor = parseFloat(document.getElementById('_subcat-valor')?.value.replace(',', '.'));
   if (!nome) { mostrarToast('Informe o nome.', 'erro'); return; }
@@ -267,7 +278,7 @@ async function _editarRecorrencia(id) {
     <h3 style="margin-bottom:var(--esp-md)">Editar recorrência</h3>
     <div class="form-grupo">
       <label class="form-label">Descrição</label>
-      <input id="_rec-edit-desc" class="form-input" type="text" value="${r.descricao}" autocomplete="off" />
+      <input id="_rec-edit-desc" class="form-input" type="text" value="${r.descricao.replace(/"/g, '&quot;')}" autocomplete="off" />
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--esp-sm)">
       <div class="form-grupo">
@@ -285,7 +296,7 @@ async function _editarRecorrencia(id) {
     </div>
     <div class="form-grupo">
       <label class="form-label">Subcategoria (opcional)</label>
-      <input id="_rec-edit-sub" class="form-input" type="text" value="${r.subcategoria || ''}" autocomplete="off" />
+      <input id="_rec-edit-sub" class="form-input" type="text" value="${(r.subcategoria || '').replace(/"/g, '&quot;')}" autocomplete="off" />
     </div>
     <div class="form-grupo">
       <label class="form-label">Meio de pagamento</label>
@@ -396,19 +407,26 @@ async function _renderizarCategorias() {
   const { data: cats, error } = await buscarCategorias();
   if (error) { conteudo.innerHTML = '<p class="erro centralizado">Erro ao carregar.</p>'; return; }
 
-  const linhas = (cats || []).map((c) => `
+  const linhas = (cats || []).map((c) => {
+    const nomeEsc = c.nome.replace(/"/g, '&quot;');
+    const tipoEsc = c.tipo.replace(/"/g, '&quot;');
+    return `
     <div class="orc-linha">
       <div style="flex:1;min-width:0">
         <div style="font-weight:600;font-size:var(--tam-sm)">${c.nome}</div>
         <div class="texto-secundario" style="font-size:var(--tam-xs)">${c.tipo}</div>
       </div>
       <div class="orc-linha__controles">
-        <button class="orc-linha__excluir" title="Subcategorias" onclick="_gerenciarSubcats('${c.nome}')">📋</button>
-        <button class="orc-linha__excluir" title="Editar" onclick="_editarCategoria('${c.nome}','${c.tipo}',${c.ordem})">✏️</button>
-        <button class="orc-linha__excluir" title="Excluir" onclick="_excluirCategoria('${c.nome}')">✕</button>
+        <button class="orc-linha__excluir" title="Subcategorias"
+          data-nome="${nomeEsc}" onclick="_gerenciarSubcats(this.dataset.nome)">📋</button>
+        <button class="orc-linha__excluir" title="Editar"
+          data-nome="${nomeEsc}" data-tipo="${tipoEsc}" data-ordem="${c.ordem}"
+          onclick="_editarCategoria(this.dataset.nome,this.dataset.tipo,Number(this.dataset.ordem))">✏️</button>
+        <button class="orc-linha__excluir" title="Excluir"
+          data-nome="${nomeEsc}" onclick="_excluirCategoria(this.dataset.nome)">✕</button>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 
   conteudo.innerHTML = `
     <div class="card" style="margin-bottom:var(--esp-md);display:flex;justify-content:space-between;align-items:center">
@@ -463,7 +481,7 @@ function _editarCategoria(nome, tipo, ordem) {
     <h3 style="margin-bottom:var(--esp-md)">Editar categoria</h3>
     <div class="form-grupo">
       <label class="form-label">Nome</label>
-      <input id="_cat-edit-nome" class="form-input" type="text" value="${nome}" autocomplete="off" />
+      <input id="_cat-edit-nome" class="form-input" type="text" value="${nome.replace(/"/g, '&quot;')}" autocomplete="off" />
     </div>
     <div class="form-grupo">
       <label class="form-label">Tipo</label>
@@ -473,7 +491,8 @@ function _editarCategoria(nome, tipo, ordem) {
       <label class="form-label">Ordem de exibição</label>
       <input id="_cat-edit-ordem" class="form-input" type="number" min="1" value="${ordem}" />
     </div>
-    <button class="btn btn--primario" style="width:100%;margin-top:var(--esp-md)" onclick="_salvarEdicaoCategoria('${nome}')">Salvar</button>
+    <button class="btn btn--primario" style="width:100%;margin-top:var(--esp-md)"
+      data-nome="${nome.replace(/"/g, '&quot;')}" onclick="_salvarEdicaoCategoria(this.dataset.nome)">Salvar</button>
   `);
 }
 

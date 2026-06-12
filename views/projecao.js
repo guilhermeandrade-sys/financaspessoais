@@ -41,7 +41,9 @@ async function renderizarProjecao() {
     .filter((o) => TIPO_POR_CATEGORIA[o.categoria] !== 'Receita')
     .reduce((s, o) => s + o.valor_mensal, 0);
 
-  const totalRecMensal = (recorrencias || []).reduce((s, r) => s + Math.abs(r.valor_esperado), 0);
+  const totalRecMensal = (recorrencias || [])
+    .filter((r) => TIPO_POR_CATEGORIA[r.categoria] !== 'Receita')
+    .reduce((s, r) => s + Math.abs(r.valor_esperado), 0);
 
   const blocos = mesesFuturos.map(({ ano, mes }) => {
     const lancs = (lancsPorAno[ano] || []).filter((l) => {
