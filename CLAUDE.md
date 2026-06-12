@@ -195,8 +195,9 @@ O app gera N lançamentos automaticamente:
 1. No primeiro acesso de cada mês, verificar se há recorrências ativas sem entrada em `fp_recorrencias_confirmadas` para o mês corrente
 2. Se houver, exibir fila de confirmação (modal ou bottom sheet)
 3. Cada card mostra: descrição, valor esperado (campo editável), categoria
-4. Ações disponíveis: **Confirmar** (cria lançamento realizado), **Rejeitar** (registra como rejeitado, não cria lançamento), **Adiar** (fecha por agora, volta a perguntar no próximo acesso)
+4. Ações disponíveis: **Confirmar** (cria lançamento realizado), **Rejeitar** (registra como rejeitado, não cria lançamento), **Adiar** (registra como `adiado`, fecha por agora e volta na próxima abertura do app)
 5. Registrar resultado em `fp_recorrencias_confirmadas`
+6. **Importante:** apenas `confirmado` e `rejeitado` removem a recorrência da fila. Status `adiado` não exclui — ela reaparece no próximo acesso dentro do mesmo mês
 
 ---
 
@@ -206,11 +207,11 @@ O app gera N lançamentos automaticamente:
 - Mês corrente com navegação para meses anteriores e futuros
 - Saldo do mês = Receita realizada − Despesa realizada
 - Cards por categoria: valor realizado vs. orçado + barra de progresso + alerta visual se estourou
-- Valor disponível por dia (secundário): `(orçamento variável − gasto variável realizado) ÷ dias restantes` — exclui fixos e essenciais
+- Valor disponível por dia (secundário): `(orçamento Variável NE + Variável − gasto Variável NE + Variável realizado) ÷ dias restantes` — **só exibido no mês atual e quando o valor é > 0**; exclui fixos e essenciais
 - FAB sempre visível para novo lançamento
 
 ### Projeção de meses futuros
-- Lista dos próximos meses do ano
+- Lista dos **próximos 6 meses**, cruzando o ano quando necessário
 - Por mês: comprometido (parcelas futuras já lançadas + recorrências ativas) vs. livre (orçamento − comprometido)
 - Responde: "quanto ainda posso gastar em julho?"
 
@@ -233,10 +234,12 @@ O app gera N lançamentos automaticamente:
 ## UX e comportamento mobile
 
 - **Mobile-first:** layout base para 390px, adaptável para desktop
-- **Tab bar inferior:** Home | Lançamentos | Análise | Patrimônio
+- **Tab bar inferior:** Home | Lançamentos | Análise | Patrimônio | Projeção | Orçamento
 - **FAB (botão flutuante):** presente em todas as telas, abre formulário de lançamento
 - **Formulário de lançamento:** bottom sheet deslizável no mobile
-- **PWA:** `manifest.json` + service worker básico — permite instalação na home screen sem App Store
+- **Botão ?:** fixo no canto superior direito (à esquerda do botão de tema); abre overlay de ajuda com 9 seções accordion (manual de uso completo)
+- **Overlay de ajuda:** full-screen no mobile (bottom sheet animado), modal centralizado no desktop; fecha com ESC ou botão ✕
+- **PWA:** `manifest.json` + service worker (cache `financas-v11`) + ícones em `icons/icon-192.png` e `icons/icon-512.png` — permite instalação na home screen sem App Store
 - Dois usuários autenticados — cada lançamento registra `usuario_id`
 
 ---
@@ -247,7 +250,10 @@ O app gera N lançamentos automaticamente:
 /
 ├── index.html              # shell da aplicação (SPA)
 ├── manifest.json           # PWA manifest
-├── sw.js                   # service worker
+├── sw.js                   # service worker (cache financas-v11)
+├── icons/
+│   ├── icon-192.png        # ícone PWA 192×192
+│   └── icon-512.png        # ícone PWA 512×512
 ├── css/
 │   └── style.css           # estilos globais com variáveis CSS
 ├── js/
@@ -264,7 +270,10 @@ O app gera N lançamentos automaticamente:
     ├── home.js             # view Home
     ├── lancamentos.js      # view lista de lançamentos
     ├── analise.js          # view análise por período
-    └── patrimonio.js       # view patrimônio e projetos
+    ├── patrimonio.js       # view patrimônio e projetos
+    ├── projecao.js         # view projeção dos próximos 6 meses
+    ├── orcamento-config.js # view configuração de orçamento, recorrências e categorias
+    └── ajuda.js            # overlay de ajuda (manual de uso, 9 seções accordion)
 ```
 
 ---
