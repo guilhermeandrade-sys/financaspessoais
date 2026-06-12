@@ -256,6 +256,12 @@ async function deletarRecorrencia(id) {
   return { error };
 }
 
+async function buscarRecorrenciaPorId(id) {
+  const { data, error } = await db.from('fp_recorrencias').select('*').eq('id', id).single();
+  if (error) console.error('buscarRecorrenciaPorId:', error);
+  return { data, error };
+}
+
 async function buscarRecorrenciasAtivas() {
   const { data, error } = await db
     .from('fp_recorrencias')

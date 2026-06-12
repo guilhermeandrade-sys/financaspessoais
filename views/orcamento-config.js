@@ -272,8 +272,7 @@ async function _toggleRecorrencia(id, ativa) {
 }
 
 async function _editarRecorrencia(id) {
-  const { data: recs } = await buscarTodasRecorrencias();
-  const r = (recs || []).find((x) => x.id === id);
+  const { data: r } = await buscarRecorrenciaPorId(id);
   if (!r) return;
   const optsCategoria = CATEGORIAS.map((c) => `<option value="${c}" ${r.categoria === c ? 'selected' : ''}>${c}</option>`).join('');
   abrirBottomSheet(`

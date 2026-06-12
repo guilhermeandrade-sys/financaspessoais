@@ -224,6 +224,5 @@ function _toggleSecaoAjuda(id) {
 }
 
 function _versaoApp() {
-  // Extrai versão do cache name do service worker
-  return 'sw v11';
+  return VERSAO_APP;
 }
