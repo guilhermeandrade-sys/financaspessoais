@@ -32,14 +32,10 @@ async function renderizarProjecao() {
     lancsPorAno[a] = lancamentosAnos[i].data || [];
   });
 
-  const [{ data: recorrencias }, { data: orcBase }] = await Promise.all([
+  const [{ data: recorrencias }, { data: todosOrc }] = await Promise.all([
     buscarRecorrenciasAtivas(),
-    buscarOrcamentoPorMes(anoAtual, mesAtual),
+    buscarTodoOrcamento(),
   ]);
-
-  const totalOrcMensal = (orcBase || [])
-    .filter((o) => TIPO_POR_CATEGORIA[o.categoria] !== 'Receita')
-    .reduce((s, o) => s + o.valor_mensal, 0);
 
   const totalRecMensal = (recorrencias || [])
     .filter((r) => TIPO_POR_CATEGORIA[r.categoria] !== 'Receita')
@@ -54,6 +50,10 @@ async function renderizarProjecao() {
     const comprometidoParcelas = lancs
       .filter((l) => l.valor < 0)
       .reduce((s, l) => s + Math.abs(l.valor), 0);
+
+    // Orçamento efetivo do mês: para cada (cat, subcat), pega o registro
+    // mais recente com valido_a_partir <= este mês
+    const totalOrcMensal = _totalOrcParaMes(todosOrc || [], ano, mes);
 
     const livre = totalOrcMensal - comprometidoParcelas - totalRecMensal;
     const pctComprometido = totalOrcMensal > 0
@@ -144,6 +144,24 @@ async function renderizarProjecao() {
       ${blocos.join('')}
     </div>
   `;
+}
+
+// Calcula o orçamento total de despesas vigente para um dado mês,
+// usando todos os registros de fp_orcamento (já em ordem desc por valido_a_partir).
+// Para cada (categoria, subcategoria), pega o registro mais recente <= alvo.
+function _totalOrcParaMes(todos, ano, mes) {
+  const alvo = `${ano}-${String(mes).padStart(2, '0')}-01`;
+  const vistos = new Set();
+  let total = 0;
+  for (const o of todos) {
+    if (o.valido_a_partir > alvo) continue;
+    if (TIPO_POR_CATEGORIA[o.categoria] === 'Receita') continue;
+    const chave = `${o.categoria}||${o.subcategoria || ''}`;
+    if (vistos.has(chave)) continue;
+    vistos.add(chave);
+    total += o.valor_mensal;
+  }
+  return total;
 }
 
 function toggleProjecaoDetalhes(cabecalho) {
