@@ -111,6 +111,25 @@ async function buscarLancamentosPorPeriodo(dataInicio, dataFim) {
   return { data, error };
 }
 
+async function buscarLancamentosNaoClassificados() {
+  const { data, error } = await db
+    .from('fp_lancamentos')
+    .select('*')
+    .eq('categoria', '')
+    .order('data_evento', { ascending: false });
+  if (error) console.error('buscarLancamentosNaoClassificados:', error);
+  return { data, error };
+}
+
+async function contarNaoClassificados() {
+  const { count, error } = await db
+    .from('fp_lancamentos')
+    .select('*', { count: 'exact', head: true })
+    .eq('categoria', '');
+  if (error) console.error('contarNaoClassificados:', error);
+  return { count: count || 0, error };
+}
+
 async function inserirLancamento(lancamento) {
   const { data, error } = await db
     .from('fp_lancamentos')

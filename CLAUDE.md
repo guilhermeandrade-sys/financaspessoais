@@ -224,6 +224,11 @@ O app gera N lançamentos automaticamente:
 - Valor disponível por dia (secundário): `(orçamento Variável NE + Variável − gasto Variável NE + Variável realizado) ÷ dias restantes` — **só exibido no mês atual e quando o valor é > 0**; exclui fixos e essenciais
 - FAB sempre visível para novo lançamento
 
+### Lançamentos
+- Lista mensal com navegação entre meses, filtros por categoria/subcategoria e busca por descrição
+- Toque em um lançamento abre o bottom sheet de edição (editar campos, excluir parcela ou grupo de parcelas)
+- **Modo "A revisar":** lançamentos com `categoria = ''` (vazia) são considerados *não classificados*. Um banner ⚠️ no topo mostra a contagem total (todos os meses) e abre uma lista global desses lançamentos para reclassificar. Convenção: lançamentos importados sem regra de categoria recebem descrição com prefixo `⚠️` e categoria vazia. Controlado por `modoRevisar` em `views/lancamentos.js`; resetado ao trocar de aba no router. Funções `buscarLancamentosNaoClassificados()` e `contarNaoClassificados()` em `db.js`.
+
 ### Projeção de meses futuros
 - Lista dos **próximos 6 meses**, cruzando o ano quando necessário
 - Por mês: comprometido (parcelas futuras já lançadas + recorrências ativas) vs. livre (orçamento − comprometido)
@@ -256,7 +261,7 @@ O app gera N lançamentos automaticamente:
 - **Formulário de lançamento:** bottom sheet deslizável no mobile
 - **Botão ?:** fixo no canto superior direito (à esquerda do botão de tema); abre overlay de ajuda com 9 seções accordion (manual de uso completo)
 - **Overlay de ajuda:** full-screen no mobile (bottom sheet animado), modal centralizado no desktop; fecha com ESC ou botão ✕
-- **PWA:** `manifest.json` + service worker (cache `financas-v13`) + ícones em `icons/icon-192.png` e `icons/icon-512.png` — permite instalação na home screen sem App Store
+- **PWA:** `manifest.json` + service worker (cache `financas-v14`) + ícones em `icons/icon-192.png` e `icons/icon-512.png` — permite instalação na home screen sem App Store
 - Dois usuários autenticados — cada lançamento registra `usuario_id`
 
 ---
@@ -267,7 +272,7 @@ O app gera N lançamentos automaticamente:
 /
 ├── index.html              # shell da aplicação (SPA)
 ├── manifest.json           # PWA manifest
-├── sw.js                   # service worker (cache financas-v11)
+├── sw.js                   # service worker (cache financas-v14)
 ├── icons/
 │   ├── icon-192.png        # ícone PWA 192×192
 │   └── icon-512.png        # ícone PWA 512×512

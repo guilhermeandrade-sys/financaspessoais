@@ -47,7 +47,10 @@ function inicializarApp() {
   }
 
   document.querySelectorAll('.tab-item').forEach((btn) => {
-    btn.addEventListener('click', () => navegarPara(btn.dataset.view));
+    btn.addEventListener('click', () => {
+      modoRevisar = false; // sair do modo "A revisar" ao trocar de aba
+      navegarPara(btn.dataset.view);
+    });
   });
 
   document.getElementById('fab').addEventListener('click', () => {

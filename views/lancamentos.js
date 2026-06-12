@@ -5,16 +5,21 @@ let anoListagem = new Date().getFullYear();
 let filtroCategoria = '';
 let filtroSubcategoria = '';
 let filtroBusca = '';
+let modoRevisar = false;
 
 async function renderizarLancamentos() {
   // Absorve parâmetros vindos de outra view (ex: clique na home)
   const params = pegarParams();
   if (params) {
+    if (params.revisar) modoRevisar = true;
     if (params.mes)  mesListagem  = params.mes;
     if (params.ano)  anoListagem  = params.ano;
     if (params.categoria !== undefined)    filtroCategoria    = params.categoria    || '';
     if (params.subcategoria !== undefined) filtroSubcategoria = params.subcategoria || '';
   }
+
+  // Modo "A revisar": lista todos os não classificados (qualquer mês)
+  if (modoRevisar) return _renderizarRevisar();
 
   const conteudo = document.getElementById('conteudo-principal');
   conteudo.innerHTML = '<div class="loading">Carregando…</div>';
@@ -24,6 +29,8 @@ async function renderizarLancamentos() {
     conteudo.innerHTML = '<p class="erro centralizado">Erro ao carregar lançamentos.</p>';
     return;
   }
+
+  const { count: qtdNaoClassif } = await contarNaoClassificados();
 
   // Subcategorias disponíveis para a categoria filtrada
   const subcatsDisponiveis = filtroCategoria
@@ -97,6 +104,12 @@ async function renderizarLancamentos() {
       </div>
     </div>` : ''}
 
+    ${qtdNaoClassif > 0 ? `
+    <div class="banner-revisar" onclick="entrarModoRevisar()">
+      <span>⚠️ <strong>${qtdNaoClassif}</strong> lançamento${qtdNaoClassif !== 1 ? 's' : ''} não classificado${qtdNaoClassif !== 1 ? 's' : ''}</span>
+      <span class="banner-revisar__acao">revisar ›</span>
+    </div>` : ''}
+
     <div class="filtros-lancamentos">
       <input id="filtro-busca" class="filtro-select" type="text"
         placeholder="🔍 Buscar descrição…" value="${filtroBusca}"
@@ -162,6 +175,49 @@ function limparFiltros() {
   filtroSubcategoria = '';
   filtroBusca = '';
   renderizarLancamentos();
+}
+
+function entrarModoRevisar() {
+  modoRevisar = true;
+  renderizarLancamentos();
+}
+
+function sairModoRevisar() {
+  modoRevisar = false;
+  renderizarLancamentos();
+}
+
+async function _renderizarRevisar() {
+  const conteudo = document.getElementById('conteudo-principal');
+  conteudo.innerHTML = '<div class="loading">Carregando…</div>';
+
+  const { data: lista, error } = await buscarLancamentosNaoClassificados();
+  if (error) {
+    conteudo.innerHTML = '<p class="erro centralizado">Erro ao carregar.</p>';
+    return;
+  }
+
+  const itens = (lista || []).map((l) => `
+    <div class="lancamento-item" onclick="abrirEdicaoLancamento('${l.id}')">
+      <div class="lancamento-item__info">
+        <div class="lancamento-item__descricao">${l.descricao}</div>
+        <div class="lancamento-item__meta">${formatarData(l.data_evento)} · ${l.meio}</div>
+      </div>
+      <div class="lancamento-item__valor ${l.valor >= 0 ? 'positivo' : 'negativo'}">${formatarMoeda(l.valor)}</div>
+    </div>`).join('');
+
+  conteudo.innerHTML = `
+    <div class="view-header" style="display:flex;justify-content:space-between;align-items:center">
+      <span class="view-header__titulo">A revisar</span>
+      <button class="btn btn--ghost btn--sm" onclick="sairModoRevisar()">✕ voltar</button>
+    </div>
+    <p class="texto-secundario" style="font-size:var(--tam-sm);margin-bottom:var(--esp-md)">
+      ${(lista || []).length} lançamento${(lista || []).length !== 1 ? 's' : ''} sem categoria. Toque para classificar.
+    </p>
+    <div class="card">
+      ${itens || '<p class="texto-secundario centralizado" style="padding:var(--esp-lg)">Tudo classificado! 🎉</p>'}
+    </div>
+  `;
 }
 
 async function abrirEdicaoLancamento(id) {

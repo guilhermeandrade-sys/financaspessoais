@@ -1147,6 +1147,24 @@ html, body {
 
 .orc-card__adicionar { margin-top: var(--esp-sm); }
 
+/* ===== BANNER "A REVISAR" (não classificados) ===== */
+.banner-revisar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--esp-sm);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-alerta);
+  border-left: 4px solid var(--cor-alerta);
+  border-radius: var(--raio-sm);
+  padding: var(--esp-sm) var(--esp-md);
+  margin-bottom: var(--esp-md);
+  font-size: var(--tam-sm);
+  cursor: pointer;
+}
+.banner-revisar:hover { background: var(--cor-superficie-2); }
+.banner-revisar__acao { color: var(--cor-alerta); font-weight: 600; white-space: nowrap; }
+
 /* ===================================================
    TABLET (768px+) — conteúdo centralizado e mais largo
    =================================================== */
