@@ -45,7 +45,7 @@ const TIPO_POR_CATEGORIA = {
 
 const MEIOS = ['cartao', 'pix', 'outro'];
 
-const VERSAO_APP = 'sw v11';
+const VERSAO_APP = 'sw v12';
 
 // Registra service worker
 if ('serviceWorker' in navigator) {

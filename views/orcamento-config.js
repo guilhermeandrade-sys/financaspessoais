@@ -109,7 +109,7 @@ async function renderizarOrcamentoConfig() {
 }
 
 function _slug(str) {
-  return str.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/gi, '-').toLowerCase();
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/gi, '-').toLowerCase();
 }
 
 function _htmlLinhaSubcat(cat, subcat, valor, orcId) {
